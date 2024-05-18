@@ -8,29 +8,29 @@ import '../../utils/constants.dart';
 import 'package:http/http.dart' as http;
 import '../provider_services/floorTableProviderService.dart';
 
-Future<bool> getFloorTableData({required BuildContext context}) async{
-  print('kAuthTokenVal = $kAuthTokenVal');
-  print("getFloorTableData url = $baseUrl$floorTableUrl");
-  var response = await http.get(Uri.parse("$baseUrl$floorTableUrl"),headers: {'OID': kOrganizationCodeVal,'EID': kEmployeeCodeVal,'Authorization': 'Bearer $kAuthTokenVal'});
-  print("getFloorTableData status code = ${response.statusCode}\nbody = ${response.body}");
-  if(response.statusCode == 200 && response.body!="")
-  {
-    List jsonBody = json.decode(response.body);
-    List<FloorTableModel> floorTableList = jsonBody.map((element) => FloorTableModel.fromJson(element)).toList();
-    final List<String?> floorNameList = floorTableList.map((element) => element.floorName).toSet().toList();
-    for (var floorName in floorNameList) {
-      var floorList = floorTableList.where((element) => element.floorName == floorName).toList();
-      listOfFloorTableListVal.add(floorList);
-    }
-    if(context.mounted)
-    {
-      FloorTableProviderService provider = Provider.of<FloorTableProviderService>(context,listen: false);
-      provider.listOfFloorTableList = listOfFloorTableListVal;
-    }
-    return true;
-  }
-  return false;
-}
+// Future<bool> getFloorTableData({required BuildContext context}) async{
+//   print('kAuthTokenVal = $kAuthTokenVal');
+//   print("getFloorTableData url = $baseUrl$floorTableUrl");
+//   var response = await http.get(Uri.parse("$baseUrl$floorTableUrl"),headers: {'OID': kOrganizationCodeVal,'EID': kEmployeeCodeVal,'Authorization': 'Bearer $kAuthTokenVal'});
+//   print("getFloorTableData status code = ${response.statusCode}\nbody = ${response.body}");
+//   if(response.statusCode == 200 && response.body!="")
+//   {
+//     List jsonBody = json.decode(response.body);
+//     List<FloorTableModel> floorTableList = jsonBody.map((element) => FloorTableModel.fromJson(element)).toList();
+//     final List<String?> floorNameList = floorTableList.map((element) => element.floorName).toSet().toList();
+//     for (var floorName in floorNameList) {
+//       var floorList = floorTableList.where((element) => element.floorName == floorName).toList();
+//       listOfFloorTableListVal.add(floorList);
+//     }
+//     if(context.mounted)
+//     {
+//       FloorTableProviderService provider = Provider.of<FloorTableProviderService>(context,listen: false);
+//       provider.listOfFloorTableList = listOfFloorTableListVal;
+//     }
+//     return true;
+//   }
+//   return false;
+// }
 
 //20240430&tdate=20240430
 

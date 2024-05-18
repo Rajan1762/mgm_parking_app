@@ -1,8 +1,12 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:mgm_parking_app/screens/enrty_screens/entry_screen.dart';
+import 'package:mgm_parking_app/screens/home_screens/home_main_screen.dart';
+import 'package:mgm_parking_app/screens/offline_screen.dart';
 import 'package:mgm_parking_app/screens/profile_screens/login_screen.dart';
 import 'package:mgm_parking_app/sevices/provider_services/date_time_provider.dart';
 import 'package:mgm_parking_app/sevices/provider_services/floorTableProviderService.dart';
@@ -31,6 +35,22 @@ void main() async{
     DateTime dateTime = DateTime.now();
     currentDate = "${dateTime.day < 10 ? '0${dateTime.day}' : dateTime.day}-${dateTime.month < 10 ? '0${dateTime.month}' : dateTime.month}-${dateTime.year}";
     print('currentDate = $currentDate');
+    // subscription = Connectivity().onConnectivityChanged.listen((List<ConnectivityResult> result) async
+    // {
+    //   print("connectivity result = $result");
+    //
+    //   if(result.contains(ConnectivityResult.none))
+    //   {
+    //     if(networkDownCount==0)
+    //     {
+    //       networkDownCount = 1;
+    //       const MaterialApp(
+    //         home: OfflineScreen(),
+    //       );
+    //       // await Navigator.of(context as BuildContext).push(MaterialPageRoute(builder: (context) => const OfflineScreen()));
+    //     }
+    //   }
+    // });
     runApp(const MyApp());
   });
   // runApp(const MyApp());
@@ -38,10 +58,8 @@ void main() async{
 
 Future<void> _getSharedPrefValue() async {
   final SharedPreferences prefs = await SharedPreferences.getInstance();
-  kOrganizationCodeVal = prefs.getString(kOrganizationCode) ?? "";
-  kEmployeeCodeVal = prefs.getString(kEmployeeCode) ?? "";
-  kIsCaptainVal = prefs.getString(kIsCaptain) ?? "";
-  kAuthTokenVal = prefs.getString(kAuthToken) ?? "";
+  shiftIDValue = prefs.getString(shiftIdString) ?? '';
+  print('shiftIDValue = $shiftIDValue');
 }
 
 class MyApp extends StatelessWidget {
@@ -68,7 +86,7 @@ class MyApp extends StatelessWidget {
           colorScheme: ColorScheme.fromSeed(seedColor: appThemeColor),
           useMaterial3: true,
         ),
-        home: const LoginScreen()//kEmployeeCodeVal == '' ? const LoginScreen() : const HomeMainScreen(),
+        home: shiftIDValue == '' ? const LoginScreen() : const HomeMainScreen()
       ),
     );
   }

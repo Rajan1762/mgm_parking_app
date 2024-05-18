@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:mgm_parking_app/model/profile_models/login_model.dart';
+import 'package:mgm_parking_app/model/profile_models/login_response_model.dart';
 import 'package:mgm_parking_app/screens/enrty_screens/entry_screen.dart';
 import '../../model/errorResponseModel.dart';
 import '../../model/profile_models.dart';
+import '../../model/profile_models/login_list_model.dart';
 import '../../sevices/network_services/profile_services.dart';
 import '../../utils/colors.dart';
 import '../../utils/custom_widgets/loading_widgets.dart';
@@ -18,20 +21,47 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   TextEditingController userController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
-  bool _isLoading = false;
+  bool _isLoading = true;
   bool _obscureTextStatus = true;
+  List<LoginListModel>? userList;
+  List<String> userNameList = ['Select User'];
+  String _dropdownValue = 'Select User';
 
-  Future<ErrorResponseModel> _loginUser(
-      {required String userName, required String password}) async {
-    UserBaseModel? obj;
+  _getUserList() async
+  {
+    try{
+      userList = await loginUserList();
+      userList?.forEach((element){
+        // userNameList.clear();
+        userNameList.add(element.username??"");
+      });
+      userNameList.forEach((a){
+        print('a = $a');
+      });
+      // setState(()=>_isLoading = false);
+    }catch(e){
+      print('Error Occurred e = $e');
+    }
+    setState(()=>_isLoading = false);
+  }
+
+  Future<ErrorResponseModel> _loginUser({required String userName, required String password}) async {
+    LoginResponseModel? obj;
     String? message;
     try {
-      if(userName=='1'&&password=='1')
-        {
-          obj = UserBaseModel(status: true);
-        }else{
-        obj = UserBaseModel(status: false);
-      }
+      obj = await loginUser(loginModel: LoginModel(
+        username: userName,
+        pwd: password,
+          boothId: '',
+        shiftname: '',
+        sdate: '',
+        sstatus: '',
+        openingamount: '',
+        csdate: '',
+        closingamount: '',
+        fuser: '',
+          shiftStatus: true,
+      ));
       // obj = await loginUser(userName: userName, password: password);
       print('obj = $obj');
     } catch (e) {
@@ -47,6 +77,12 @@ class _LoginScreenState extends State<LoginScreen> {
     userController.dispose();
     passwordController.dispose();
     super.dispose();
+  }
+
+  @override
+  void initState() {
+    _getUserList();
+    super.initState();
   }
 
   @override
@@ -85,9 +121,35 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: 40,),
                     Column(
                       children: [
-                        TextField(
-                          controller: userController,
-                            decoration: loginTextFieldDesign(true,(){})),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: const BorderRadius.all(Radius.circular(8)),
+                              border: Border.all(color: appThemeColor)
+                          ),
+                          child: Center(
+                            child: DropdownButtonHideUnderline(
+                              child: DropdownButton(
+                                // iconEnabledColor: Colors.white,
+                                isExpanded: true,
+                                // hint: const Text('Select Waiter'),
+                                value: _dropdownValue,
+                                items: userNameList.map<DropdownMenuItem<String>>((String value) {
+                                  return DropdownMenuItem<String>(value: value, child: Text(value,));
+                                }).toList(),
+                                onChanged: (String? value) {
+                                  setState(() {
+                                    _dropdownValue = value!;
+                                  });
+                                },
+                              ),
+                            ),
+                          ),
+                        ),
+                        // TextField(
+                        //   controller: userController,
+                        //     decoration: loginTextFieldDesign(true,(){})),
                         const SizedBox(height: 20),
                         TextField(
                           controller: passwordController,
@@ -102,18 +164,18 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: 30,),
                     ElevatedButton(
                         style: ButtonStyle(
-                          backgroundColor: MaterialStateProperty.all<Color>(appThemeColor),
-                          foregroundColor: MaterialStateProperty.all<Color>(Colors.black),
-                          padding: MaterialStateProperty.all<EdgeInsetsGeometry?>(const EdgeInsets.symmetric(vertical: 10)),
-                          shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                          backgroundColor: WidgetStateProperty.all<Color>(appThemeColor),
+                          foregroundColor: WidgetStateProperty.all<Color>(Colors.black),
+                          padding: WidgetStateProperty.all<EdgeInsetsGeometry?>(const EdgeInsets.symmetric(vertical: 10)),
+                          shape: WidgetStateProperty.all<RoundedRectangleBorder>(
                             RoundedRectangleBorder(borderRadius: BorderRadius.circular(5.0)),
                           ),
                         ),
                         onPressed: () async {
-                          if(userController.value.text.isNotEmpty && passwordController.value.text.isNotEmpty)
+                          if(_dropdownValue != userNameList.first && passwordController.value.text.isNotEmpty)
                             {
                               setState(() => _isLoading=true);
-                              ErrorResponseModel response = await _loginUser(userName: userController.value.text, password: passwordController.value.text);
+                              ErrorResponseModel response = await _loginUser(userName: _dropdownValue, password: passwordController.value.text);
                               if (context.mounted) {
                                 setState(() => _isLoading=false);
                                 if (response.obj != null) {

@@ -11,10 +11,12 @@ import 'package:mgm_parking_app/sevices/provider_services/date_time_provider.dar
 import 'package:mgm_parking_app/utils/custom_widgets/loading_widgets.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
+import '../../model/entry_model.dart';
 import '../../utils/colors.dart';
 import '../../utils/common_functions.dart';
 import '../../utils/constants.dart';
 import '../../utils/custom_widgets/common_widget.dart';
+import '../../utils/custom_widgets/notification_widgets.dart';
 import '../../utils/custom_widgets/profile_screen_widget.dart';
 
 const List<String> list = <String>[
@@ -90,19 +92,26 @@ class _EntryScreenState extends State<EntryScreen> {
       final bytes = File(_mediaFileList![0].path).readAsBytesSync();
       img64 = base64Encode(bytes);
     }
+    print('dateTime = $dateTime');
     try {
-      registerUser(
-          registerModel: RegisterModel(
-              id: const Uuid().v4(),
-              scanId: _idNumber.toString(),
-              ownerName: _ownerName.toString(),
-              ownerMobile: _ownerMobileNumber.toString(),
-              location: dropdownValue,
-              driverName: dropdownDriverValue,
-              driverMobile: _driverMobileNumber.toString(),
-              date: formatDate(dateTime),
-              time: formatTime(dateTime),
-              image_data: img64));
+      await saveEntryVehicle(
+          registerModel: EntryModel(
+            // transid: 1,
+              uniqueId: const Uuid().v4(),
+              vehicleNo: _idNumber.toString(),
+              vehicleType: "1",
+              barcode: "",
+              date: '$dateTime',
+              intime: '$dateTime',
+              createdate: '$dateTime',
+              status: "A",
+              booth: "2",
+              userid: "1",
+            amount: 0,
+              design: "",
+            userName: ""
+          ),
+      );
       _formKey.currentState?.reset();
     } catch (e) {
       print('_saveUserData Error Occurred = $e');
@@ -220,6 +229,35 @@ class _EntryScreenState extends State<EntryScreen> {
                         ),
                       ),
                     ),
+                    const SizedBox(height: 10,),
+                    const Text('Choose Location',
+                        style: TextStyle(fontSize: 16)),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: const BorderRadius.all(Radius.circular(8)),
+                          border: Border.all(color: appThemeColor)
+                      ),
+                      child: Center(
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButton(
+                            // iconEnabledColor: Colors.white,
+                            isExpanded: true,
+                            // hint: const Text('Select Waiter'),
+                            value: dropdownValue,
+                            items: list.map<DropdownMenuItem<String>>((String value) {
+                              return DropdownMenuItem<String>(value: value, child: Text(value,));
+                            }).toList(),
+                            onChanged: (String? value) {
+                              setState(() {
+                                dropdownValue = value!;
+                              });
+                            },
+                          ),
+                        ),
+                      ),
+                    ),
                     const SizedBox(
                       height: 20,
                     ),
@@ -232,16 +270,16 @@ class _EntryScreenState extends State<EntryScreen> {
                               setState(() => _isLoading = true);
                               _saveUserData().then((value) {
                                 if (value) {
-                                  ScaffoldMessenger.of(context)
-                                      .showSnackBar(SnackBar(
-                                    backgroundColor: appThemeColor,
-                                    content: const Text(
-                                      'Saved Successfully!',
-                                      style: TextStyle(color: Colors.white),
-                                    ),
-                                  ));
-                                  setState(() => _isLoading = false);
-
+                                  // ScaffoldMessenger.of(context)
+                                  //     .showSnackBar(SnackBar(
+                                  //   backgroundColor: appThemeColor,
+                                  //   content: const Text(
+                                  //     'Saved Successfully!',
+                                  //     style: TextStyle(color: Colors.white),
+                                  //   ),
+                                  // ));
+                                  autoDeleteAlertDialog(context: context, message: 'Saved Successfully!');
+                                  _clearData();
                                   // Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>const HomeMainScreen()));
                                 }
                                 // _formKey.currentState?.reset();
@@ -282,6 +320,7 @@ class _EntryScreenState extends State<EntryScreen> {
 
   _clearData()
   {
+    _isLoading = false;
     bikeSelected = true;
     _idNumber.clear();
     _idFocusNode.requestFocus();

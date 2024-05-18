@@ -1,7 +1,5 @@
 import 'dart:async';
-
 import 'package:flutter/cupertino.dart';
-
 import '../../utils/common_functions.dart';
 
 class DateTimeProvider extends ChangeNotifier{

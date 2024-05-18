@@ -1,5 +1,62 @@
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:mgm_parking_app/utils/colors.dart';
+
+import '../common_values.dart';
+
+void autoDeleteAlertDialog({required BuildContext context,required String message})
+{
+  alertOkStatus = false;
+  showDialog(
+      context: context,
+      builder: (context) {
+        Future.delayed(const Duration(seconds: 1), () {
+          if(!alertOkStatus)
+            {
+              Navigator.of(context).pop(true);
+            }
+        });
+        return AlertDialog(
+          title: Text(message),
+          actions: <Widget>[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                TextButton(
+                  onPressed:(){
+                    alertOkStatus = true;
+                    Navigator.of(context).pop();
+                    },
+                  child: Text('OK',style: TextStyle(color: appThemeColor,fontWeight: FontWeight.bold,fontSize: 18)),
+                ),
+              ],
+            ),
+          ],
+        );
+      });
+}
+
+void showToast(String message)
+{
+  Fluttertoast.showToast(
+      msg: message,
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.CENTER,
+      timeInSecForIosWeb: 1,
+      backgroundColor: Colors.black,
+      textColor: Colors.white,
+      fontSize: 16.0
+  );
+}
+void showMessageAlertDialog({required BuildContext context,required String message})
+{
+  showDialog(context: context, builder: (BuildContext context){
+    return AlertDialog(
+      backgroundColor: Colors.white,
+      title: Text(message),
+    );
+  });
+}
 
 void showCommonAlertDialog({required BuildContext context,required String message,required Function() onTap})
 {
