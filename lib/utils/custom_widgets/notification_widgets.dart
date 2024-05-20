@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:mgm_parking_app/utils/colors.dart';
-
 import '../common_values.dart';
 
 void autoDeleteAlertDialog({required BuildContext context,required String message})
@@ -48,6 +47,7 @@ void showToast(String message)
       fontSize: 16.0
   );
 }
+
 void showMessageAlertDialog({required BuildContext context,required String message})
 {
   showDialog(context: context, builder: (BuildContext context){
@@ -62,7 +62,7 @@ void showCommonAlertDialog({required BuildContext context,required String messag
 {
   showDialog(context: context, builder: (BuildContext context){
     return AlertDialog(
-      content: Text(message),
+      title: Text(message),
       actions: <Widget>[
         TextButton(
           onPressed:()=>Navigator.of(context).pop(),

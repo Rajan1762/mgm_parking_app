@@ -1,11 +1,7 @@
 import 'dart:io';
 import 'dart:convert';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:mgm_parking_app/model/profile_models.dart';
 import 'package:mgm_parking_app/sevices/network_services/profile_services.dart';
 import 'package:mgm_parking_app/sevices/provider_services/date_time_provider.dart';
 import 'package:mgm_parking_app/utils/custom_widgets/loading_widgets.dart';
@@ -13,7 +9,6 @@ import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 import '../../model/entry_model.dart';
 import '../../utils/colors.dart';
-import '../../utils/common_functions.dart';
 import '../../utils/constants.dart';
 import '../../utils/custom_widgets/common_widget.dart';
 import '../../utils/custom_widgets/notification_widgets.dart';
@@ -66,7 +61,11 @@ class _EntryScreenState extends State<EntryScreen> {
 
   @override
   void initState() {
-    _idFocusNode.requestFocus();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _idFocusNode.requestFocus();
+      }
+    });
     DateTimeProvider? dateTimeProvider = Provider.of<DateTimeProvider>(context, listen: false);
     dateTimeProvider.runTimer();
     super.initState();
@@ -99,7 +98,7 @@ class _EntryScreenState extends State<EntryScreen> {
             // transid: 1,
               uniqueId: const Uuid().v4(),
               vehicleNo: _idNumber.toString(),
-              vehicleType: "1",
+              vehicleType: bikeSelected ? "2" : "1",
               barcode: "",
               date: '$dateTime',
               intime: '$dateTime',
@@ -121,12 +120,13 @@ class _EntryScreenState extends State<EntryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: Colors.grey.shade300,
-      height: MediaQuery.of(context).size.height,
-      child: Stack(
-        children: [
-          SingleChildScrollView(
+    return Stack(
+      children: [
+        SingleChildScrollView(
+          child: Container(
+            color: Colors.grey.shade300,
+            width: MediaQuery.of(context).size.width,
+            height: MediaQuery.of(context).size.height,
             child: Padding(
               padding: const EdgeInsets.all(20.0),
               child: Form(
@@ -230,41 +230,41 @@ class _EntryScreenState extends State<EntryScreen> {
                       ),
                     ),
                     const SizedBox(height: 10,),
-                    const Text('Choose Location',
-                        style: TextStyle(fontSize: 16)),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: const BorderRadius.all(Radius.circular(8)),
-                          border: Border.all(color: appThemeColor)
-                      ),
-                      child: Center(
-                        child: DropdownButtonHideUnderline(
-                          child: DropdownButton(
-                            // iconEnabledColor: Colors.white,
-                            isExpanded: true,
-                            // hint: const Text('Select Waiter'),
-                            value: dropdownValue,
-                            items: list.map<DropdownMenuItem<String>>((String value) {
-                              return DropdownMenuItem<String>(value: value, child: Text(value,));
-                            }).toList(),
-                            onChanged: (String? value) {
-                              setState(() {
-                                dropdownValue = value!;
-                              });
-                            },
-                          ),
-                        ),
-                      ),
-                    ),
+                    // const Text('Choose Location',
+                    //     style: TextStyle(fontSize: 16)),
+                    // Container(
+                    //   padding: const EdgeInsets.symmetric(horizontal: 20),
+                    //   decoration: BoxDecoration(
+                    //       color: Colors.white,
+                    //       borderRadius: const BorderRadius.all(Radius.circular(8)),
+                    //       border: Border.all(color: appThemeColor)
+                    //   ),
+                    //   child: Center(
+                    //     child: DropdownButtonHideUnderline(
+                    //       child: DropdownButton(
+                    //         // iconEnabledColor: Colors.white,
+                    //         isExpanded: true,
+                    //         // hint: const Text('Select Waiter'),
+                    //         value: dropdownValue,
+                    //         items: list.map<DropdownMenuItem<String>>((String value) {
+                    //           return DropdownMenuItem<String>(value: value, child: Text(value,));
+                    //         }).toList(),
+                    //         onChanged: (String? value) {
+                    //           setState(() {
+                    //             dropdownValue = value!;
+                    //           });
+                    //         },
+                    //       ),
+                    //     ),
+                    //   ),
+                    // ),
                     const SizedBox(
                       height: 20,
                     ),
                     Row(
                       children: [
                         SaveClearWidget(
-                          title: 'Save',
+                          title: 'Add',
                           onPressed: () {
                             if (_formKey.currentState!.validate()) {
                               setState(() => _isLoading = true);
@@ -278,7 +278,7 @@ class _EntryScreenState extends State<EntryScreen> {
                                   //     style: TextStyle(color: Colors.white),
                                   //   ),
                                   // ));
-                                  autoDeleteAlertDialog(context: context, message: 'Saved Successfully!');
+                                  autoDeleteAlertDialog(context: context, message: 'Added Successfully!');
                                   _clearData();
                                   // Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>const HomeMainScreen()));
                                 }
@@ -312,9 +312,9 @@ class _EntryScreenState extends State<EntryScreen> {
               ),
             ),
           ),
-          FullScreenLoadingWidget(isLoading: _isLoading),
-        ],
-      ),
+        ),
+        FullScreenLoadingWidget(isLoading: _isLoading),
+      ],
     );
   }
 

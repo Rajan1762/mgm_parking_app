@@ -13,6 +13,7 @@ const String kDefaultNetworkImage = 'https://en.wikipedia.org/wiki/Food#/media/F
 const String kDefaultAssetImage = "assets/images/loading_image.jpg";
 const String tableAssetImage = 'assets/images/table.png';
 const String loginUrl = '$baseUrl/api/Login';
+const String logOutURL = '$baseUrl/Login/closeshift/';
 
 const String kOfflineImage = "assets/images/offline_image.jpg";
 const String kOrganizationCode = 'Organization_Code';
@@ -45,9 +46,9 @@ class VehicleValueModel{
 
 VehicleValueModel setVehicleValues({required String vehicleType}){
   return VehicleValueModel(
-      baseAmount: vehicleType == 'Bike' ? 30 : 50,
-      extraAmount: vehicleType == 'Bike' ? 15 : 25,
-      perDayAmount: vehicleType == 'Bike' ? 250 : 400);
+      baseAmount: vehicleType == '2' ? 30 : 50,
+      extraAmount: vehicleType == '2' ? 15 : 25,
+      perDayAmount: vehicleType == '2' ? 250 : 400);
 }
 
 List<DealsCardModel>? dealsCardList;

@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:mgm_parking_app/model/entry_model.dart';
 import 'package:mgm_parking_app/model/errorResponseModel.dart';
-import 'package:mgm_parking_app/model/exit_screen_models.dart';
+import 'package:mgm_parking_app/model/exit_screen_model/exit_screen_models.dart';
 import 'package:mgm_parking_app/utils/colors.dart';
 import 'package:mgm_parking_app/utils/custom_widgets/notification_widgets.dart';
 import 'package:uuid/uuid.dart';
+import '../../model/exit_screen_model/exit_screen_response_model.dart';
 import '../../sevices/network_services/exit_screen_services.dart';
 import '../../utils/common_functions.dart';
 import '../../utils/constants.dart';
 import '../../utils/custom_widgets/common_widget.dart';
 import '../../utils/custom_widgets/loading_widgets.dart';
 import '../../utils/custom_widgets/profile_screen_widget.dart';
+import 'package:intl/intl.dart';
 
 class ExitScreen extends StatefulWidget {
   const ExitScreen({super.key});
@@ -35,22 +37,23 @@ class _ExitScreenState extends State<ExitScreen> {
   int remainingHours = 0;
   ErrorResponseModel? errorResponseModel;
 
-  _saveExitVehicleData() async
+  Future<ExitResponseModel?> _saveExitVehicleData() async
   {
+    print('shiftIDValue = $shiftIDValue');
     var dateTime = DateTime.now();
-    await saveExitVehicle(exitSaveModel: ExitSaveModel(
+    return await saveExitVehicle(exitSaveModel: ExitSaveModel(
       uniqueId: const Uuid().v4(),
-      vehicleType: '1',
+      vehicleType: entryModel?.vehicleType,
       vehicleNo: _idNumber.toString(),
-      date: formatDate(dateTime),
-      outime: formatTime(dateTime),
+      date: DateFormat("yyyy-MM-dd HH:mm:ss").format(dateTime),//formatDate(dateTime),
+      outime: DateFormat("yyyy-MM-dd HH:mm:ss").format(dateTime),//formatTime(dateTime),
       barcode: '',
       duration: '${hours.toString().padLeft(2, '0')} : ${minutes.toString().padLeft(2, '0')} : ${seconds.toString().padLeft(2, '0')}',
-      intime: entryModel?.intime,
+      intime: DateFormat("yyyy-MM-dd HH:mm:ss").format(DateTime.parse(entryModel!.intime!)),
       payment: '$amount',
       createdate: entryModel?.date,
-      status: 'D', booth: '1', userid: '1', paymode: 'Cash', remarks: '', shiftid: '', userName: '', refNo: '',
-      printDate: '$dateTime',
+      status: 'D', booth: '1', userid: '1', paymode: 'Cash', remarks: '', shiftid: shiftIDValue, userName: '', refNo: '',
+      printDate: DateFormat("yyyy-MM-dd'T'HH:mm:ss").format(dateTime),
     ));
   }
 
@@ -141,7 +144,7 @@ class _ExitScreenState extends State<ExitScreen> {
                                       if (errorResponseModel != null) {
                                         if (errorResponseModel?.errorMessage !=
                                             null) {
-                                          autoDeleteAlertDialog(
+                                          showErrorAlertDialog(
                                               context: context,
                                               message: errorResponseModel!
                                                   .errorMessage!);
@@ -188,8 +191,7 @@ class _ExitScreenState extends State<ExitScreen> {
                           margin: const EdgeInsets.symmetric(vertical: 30),
                           decoration: BoxDecoration(
                               color: Colors.white,
-                              borderRadius:
-                                  const BorderRadius.all(Radius.circular(8)),
+                              borderRadius: const BorderRadius.all(Radius.circular(8)),
                               border: Border.all(color: appThemeColor),
                               boxShadow: [
                                 BoxShadow(color: appThemeColor, blurRadius: 3)
@@ -206,14 +208,13 @@ class _ExitScreenState extends State<ExitScreen> {
                                         : ''),
                                 ExitFieldWidgets(
                                     title: 'Vehicle Type',
-                                    value: (entryModel?.vehicleType == null || (entryModel!.vehicleType!.isEmpty)) ? 'Car' : 'Bike'),
+                                    value: entryModel != null ? entryModel?.vehicleType == '1' ? 'Car' : 'Bike':''),
                                 ExitFieldWidgets(
                                     title: 'Status',
                                     value: entryModel?.status ?? ''),
                                 ExitFieldWidgets(
                                     title: 'Entry Time',
-                                    value:
-                                        entryDateTime),
+                                    value: entryDateTime),
                                 ExitFieldWidgets(
                                     title: 'Exit Time', value: exitDateTime),
                                 const Padding(
@@ -274,8 +275,24 @@ class _ExitScreenState extends State<ExitScreen> {
                     SaveClearWidget(
                         title: 'Save',
                         onPressed: () async {
-                          await _saveExitVehicleData();
-                          _clearData();
+                          print('entryModel = $entryModel');
+                          if(entryModel!=null)
+                            {
+                              setState(()=>_isLoading=true);
+                              ExitResponseModel? e = await _saveExitVehicleData();
+                              if(context.mounted)
+                              {
+                                if(e!=null && e.message == 'Succesfully OutChecked!')
+                                {
+                                  autoDeleteAlertDialog(context: context, message: 'Saved Successfully!');
+                                }else{
+                                  autoDeleteAlertDialog(context: context, message: 'Failed to Save Data');
+                                }
+                              }
+                              _clearData();
+                            }else{
+                            showMessageAlertDialog(context: context, message: 'Failed. Invalid Vehicle Details');
+                          }
                         }),
                   ],
                 ),
@@ -294,9 +311,18 @@ class _ExitScreenState extends State<ExitScreen> {
   _clearData() {
     // checkStatus = true;
     _idNumber.clear();
+    entryModel = null;
     _idFocusNode.requestFocus();
     _idController.clear();
-    setState(() {});
+    amount = 0;
+    entryDateTime = '';
+    exitDateTime = '';
+    hours = 0;
+    minutes = 0;
+    seconds = 0;
+    noOfDays = 0;
+    remainingHours = 0;
+    setState(()=>_isLoading=false);
   }
 }
 

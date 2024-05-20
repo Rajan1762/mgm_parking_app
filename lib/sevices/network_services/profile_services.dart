@@ -3,12 +3,11 @@ import 'package:mgm_parking_app/model/profile_models/login_model.dart';
 import 'package:mgm_parking_app/model/profile_models/login_response_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../model/entry_model.dart';
-import '../../model/profile_models.dart';
 import '../../model/profile_models/login_list_model.dart';
 import '../../utils/constants.dart';
 import 'package:http/http.dart' as http;
 
-// "User_Name":"somu",
+// "User_Name":"some",
 // "Password":"123456"
 
 Future<LoginResponseModel?> loginUser({required LoginModel loginModel}) async {
@@ -30,8 +29,8 @@ saveDate(LoginResponseModel loginResponseModel) async
 {
   // Obtain shared preferences.
   final SharedPreferences prefs = await SharedPreferences.getInstance();
+  prefs.setString(shiftIdString, loginResponseModel.shiftid ?? '');
   shiftIDValue = loginResponseModel.shiftid ?? '';
-  await prefs.setString(shiftIdString, loginResponseModel.shiftid ?? '');
 }
 
 Future<List<LoginListModel>?> loginUserList() async {
@@ -76,8 +75,7 @@ Future<EntryModel?> saveEntryVehicle(
   http.Response response = await http.post(Uri.parse('$baseUrl$saveVehicleUrl'),
       body: json.encode(registerModel.toJson()),
       headers: {'Content-Type': 'application/json'});
-  print(
-      'registerUserUrl response = ${response.body}, statusCode = ${response.statusCode}');
+  print('registerUserUrl response.body = ${response.body}, statusCode = ${response.statusCode}');
   if ((response.statusCode >= 200 && response.statusCode < 300) &&
       response.body.isNotEmpty) {
     return EntryModel.fromJson(json.decode(response.body));

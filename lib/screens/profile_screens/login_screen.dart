@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mgm_parking_app/model/profile_models/login_model.dart';
 import 'package:mgm_parking_app/model/profile_models/login_response_model.dart';
-import 'package:mgm_parking_app/screens/enrty_screens/entry_screen.dart';
 import '../../model/errorResponseModel.dart';
-import '../../model/profile_models.dart';
 import '../../model/profile_models/login_list_model.dart';
 import '../../sevices/network_services/profile_services.dart';
 import '../../utils/colors.dart';
@@ -35,9 +33,9 @@ class _LoginScreenState extends State<LoginScreen> {
         // userNameList.clear();
         userNameList.add(element.username??"");
       });
-      userNameList.forEach((a){
+      for (var a in userNameList) {
         print('a = $a');
-      });
+      }
       // setState(()=>_isLoading = false);
     }catch(e){
       print('Error Occurred e = $e');
