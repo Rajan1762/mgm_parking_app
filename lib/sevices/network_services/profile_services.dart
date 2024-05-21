@@ -32,6 +32,8 @@ saveDate(LoginResponseModel loginResponseModel) async
   final SharedPreferences prefs = await SharedPreferences.getInstance();
   prefs.setString(shiftIdString, loginResponseModel.shiftid ?? '');
   shiftIDValue = loginResponseModel.shiftid ?? '';
+  prefs.setString(userIdString, loginResponseModel.transid ?? '');
+  userIDValue = loginResponseModel.transid ?? '';
 }
 
 Future<List<LoginListModel>?> loginUserList() async {
@@ -71,8 +73,7 @@ Future<List<LoginListModel>?> loginUserList() async {
 Future<ExitResponseModel?> saveEntryVehicle(
     {required EntryModel registerModel}) async {
   print('saveVehicleUrl = $baseUrl$saveVehicleUrl');
-  print(
-      'json.encode(registerModel.toJson()) = ${json.encode(registerModel.toJson())}');
+  print('json.encode(registerModel.toJson()) = ${json.encode(registerModel.toJson())}');
   http.Response response = await http.post(Uri.parse('$baseUrl$saveVehicleUrl'),
       body: json.encode(registerModel.toJson()),
       headers: {'Content-Type': 'application/json'});

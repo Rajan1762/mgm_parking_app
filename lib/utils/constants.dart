@@ -14,7 +14,7 @@ const String kDefaultNetworkImage = 'https://en.wikipedia.org/wiki/Food#/media/F
 const String kDefaultAssetImage = "assets/images/loading_image.jpg";
 const String tableAssetImage = 'assets/images/table.png';
 const String loginUrl = '$baseUrl/api/Login';
-const String logOutURL = '$baseUrl/Login/closeshift/';
+const String logOutURL = '$baseUrl/api/Login/closeshift/';
 
 const String kOfflineImage = "assets/images/offline_image.jpg";
 const String kOrganizationCode = 'Organization_Code';
@@ -37,6 +37,8 @@ const String kDriverNameString = 'Driver Name';
 String kDriverNameValue = '';
 const String shiftIdString = 'shiftId';
 String shiftIDValue = '';
+const String userIdString = 'userId';
+String userIDValue = '';
 const String cashString = 'Cash';
 const String cardString = 'Card';
 const String creditString = 'Credit';

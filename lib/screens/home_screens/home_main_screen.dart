@@ -25,11 +25,14 @@ class _HomeMainScreenState extends State<HomeMainScreen> {
 
   Future<void> _logOutUser()async{
     await logOutUser(logoutModel: LogOutModel(
-      shiftname: shiftIDValue
+      shiftname: shiftIDValue,
+          username: userIDValue
     ));
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.setString(shiftIdString, '');
     shiftIDValue = '';
+    prefs.setString(userIdString, '');
+    userIDValue = '';
   }
 
   @override

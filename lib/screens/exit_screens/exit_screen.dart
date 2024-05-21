@@ -149,7 +149,7 @@ class _ExitScreenState extends State<ExitScreen> {
         child: Stack(
           children: [
             Padding(
-              padding: const EdgeInsets.all(10.0),
+              padding: const EdgeInsets.symmetric(horizontal: 10.0,vertical: 5),
               child: Column(
                 children: [
                   Expanded(

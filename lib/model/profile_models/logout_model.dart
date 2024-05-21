@@ -1,5 +1,5 @@
 class LogOutModel {
-  // String? username;
+  String? username;
   // String? pwd;
   // String? boothId;
   String? shiftname;
@@ -13,7 +13,7 @@ class LogOutModel {
 
   LogOutModel(
       {
-        // this.username,
+        this.username,
         // this.pwd,
         // this.boothId,
         this.shiftname,
@@ -27,7 +27,7 @@ class LogOutModel {
       });
 
   LogOutModel.fromJson(Map<String, dynamic> json) {
-    // username = json['username'];
+    username = json['username'];
     // pwd = json['pwd'];
     // boothId = json['boothId'];
     shiftname = json['shiftname'];
@@ -42,7 +42,7 @@ class LogOutModel {
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = <String, dynamic>{};
-    // data['username'] = this.username;
+    data['username'] = this.username;
     // data['pwd'] = this.pwd;
     // data['boothId'] = this.boothId;
     data['shiftname'] = this.shiftname;
