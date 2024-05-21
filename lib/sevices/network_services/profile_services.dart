@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:mgm_parking_app/model/exit_screen_model/exit_screen_response_model.dart';
 import 'package:mgm_parking_app/model/profile_models/login_model.dart';
 import 'package:mgm_parking_app/model/profile_models/login_response_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -67,7 +68,7 @@ Future<List<LoginListModel>?> loginUserList() async {
 //   return null;
 // }
 
-Future<EntryModel?> saveEntryVehicle(
+Future<ExitResponseModel?> saveEntryVehicle(
     {required EntryModel registerModel}) async {
   print('saveVehicleUrl = $baseUrl$saveVehicleUrl');
   print(
@@ -78,7 +79,7 @@ Future<EntryModel?> saveEntryVehicle(
   print('registerUserUrl response.body = ${response.body}, statusCode = ${response.statusCode}');
   if ((response.statusCode >= 200 && response.statusCode < 300) &&
       response.body.isNotEmpty) {
-    return EntryModel.fromJson(json.decode(response.body));
+    return ExitResponseModel.fromJson(json.decode(response.body));
     // print('UserBaseModel.fromJson(json.decode(response.body)) = ${UserBaseModel.fromJson(json.decode(response.body))}');
     // UserBaseModel userBaseModel = UserBaseModel.fromJson(json.decode(response.body));
     // saveUserData(userBaseModel.data);

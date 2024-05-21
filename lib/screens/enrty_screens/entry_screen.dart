@@ -42,6 +42,7 @@ class _EntryScreenState extends State<EntryScreen> {
   final StringBuffer _ownerName = StringBuffer();
   final StringBuffer _driverMobileNumber = StringBuffer();
   final StringBuffer _idNumber = StringBuffer();
+
   // final ScrollController _scrollController = ScrollController();
   final FocusNode _idFocusNode = FocusNode();
   final FocusNode _ownerNameFocusNode = FocusNode();
@@ -54,10 +55,9 @@ class _EntryScreenState extends State<EntryScreen> {
   bool _isLoading = false;
   String dropdownValue = list.first;
   String dropdownDriverValue = driverList.first;
-  bool bikeSelected = true;
+  bool carSelected = true;
   List<XFile>? _mediaFileList;
   bool isLoading = false;
-
 
   @override
   void initState() {
@@ -66,7 +66,8 @@ class _EntryScreenState extends State<EntryScreen> {
         _idFocusNode.requestFocus();
       }
     });
-    DateTimeProvider? dateTimeProvider = Provider.of<DateTimeProvider>(context, listen: false);
+    DateTimeProvider? dateTimeProvider =
+        Provider.of<DateTimeProvider>(context, listen: false);
     dateTimeProvider.runTimer();
     super.initState();
   }
@@ -84,7 +85,7 @@ class _EntryScreenState extends State<EntryScreen> {
     super.dispose();
   }
 
-  Future<bool> _saveUserData() async {
+  Future<bool> _addNewVehicle() async {
     var dateTime = DateTime.now();
     String img64 = '';
     if (_mediaFileList != null) {
@@ -94,22 +95,21 @@ class _EntryScreenState extends State<EntryScreen> {
     print('dateTime = $dateTime');
     try {
       await saveEntryVehicle(
-          registerModel: EntryModel(
+        registerModel: EntryModel(
             // transid: 1,
-              uniqueId: const Uuid().v4(),
-              vehicleNo: _idNumber.toString(),
-              vehicleType: bikeSelected ? "2" : "1",
-              barcode: "",
-              date: '$dateTime',
-              intime: '$dateTime',
-              createdate: '$dateTime',
-              status: "A",
-              booth: "2",
-              userid: "1",
+            uniqueId: const Uuid().v4(),
+            vehicleNo: _idNumber.toString(),
+            vehicleType: carSelected ? "1" : "2",
+            barcode: "",
+            date: '$dateTime',
+            intime: '$dateTime',
+            createdate: '$dateTime',
+            status: "A",
+            booth: "2",
+            userid: "1",
             amount: 0,
-              design: "",
-            userName: ""
-          ),
+            design: "",
+            userName: ""),
       );
       _formKey.currentState?.reset();
     } catch (e) {
@@ -122,7 +122,10 @@ class _EntryScreenState extends State<EntryScreen> {
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        SingleChildScrollView(
+        GestureDetector(
+          onTap: () {
+            FocusManager.instance.primaryFocus?.unfocus();
+          },
           child: Container(
             color: Colors.grey.shade300,
             width: MediaQuery.of(context).size.width,
@@ -156,11 +159,10 @@ class _EntryScreenState extends State<EntryScreen> {
                       child: Column(
                         children: [
                           const Row(
-                            mainAxisAlignment:
-                            MainAxisAlignment.spaceAround,
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
                             children: [
-                              Text('Date',style: TextStyle(fontSize: 16)),
-                              Text('Time',style: TextStyle(fontSize: 16)),
+                              Text('Date', style: TextStyle(fontSize: 16)),
+                              Text('Time', style: TextStyle(fontSize: 16)),
                             ],
                           ),
                           Consumer<DateTimeProvider>(
@@ -169,9 +171,13 @@ class _EntryScreenState extends State<EntryScreen> {
                               return Row(
                                 children: [
                                   DataTimeContainerWidget(
-                                    value: provider.date, dateStatus: true,),
+                                    value: provider.date,
+                                    dateStatus: true,
+                                  ),
                                   DataTimeContainerWidget(
-                                    value: provider.time, dateStatus: false,),
+                                    value: provider.time,
+                                    dateStatus: false,
+                                  ),
                                 ],
                               );
                             },
@@ -184,52 +190,54 @@ class _EntryScreenState extends State<EntryScreen> {
                       child: Row(
                         children: [
                           BikeCarSelectionWidget(
-                              title: 'Bike',
-                              onTap: () {
-                                bikeSelected = true;
-                                setState(() {});
-                              },
-                              selectedStatus: bikeSelected),
-                          const SizedBox(width: 15),
-                          BikeCarSelectionWidget(
                               title: 'Car',
                               onTap: () {
-                                bikeSelected = false;
+                                carSelected = true;
                                 setState(() {});
                               },
-                              selectedStatus: !bikeSelected)
+                              selectedStatus: carSelected),
+                          const SizedBox(width: 15),
+                          BikeCarSelectionWidget(
+                              title: 'Bike',
+                              onTap: () {
+                                carSelected = false;
+                                setState(() {});
+                              },
+                              selectedStatus: !carSelected)
                         ],
                       ),
                     ),
-                    const Text('Choose Location',
-                        style: TextStyle(fontSize: 16)),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: const BorderRadius.all(Radius.circular(8)),
-                        border: Border.all(color: appThemeColor)
-                      ),
-                      child: Center(
-                        child: DropdownButtonHideUnderline(
-                          child: DropdownButton(
-                            // iconEnabledColor: Colors.white,
-                            isExpanded: true,
-                            // hint: const Text('Select Waiter'),
-                            value: dropdownValue,
-                            items: list.map<DropdownMenuItem<String>>((String value) {
-                              return DropdownMenuItem<String>(value: value, child: Text(value,));
-                            }).toList(),
-                            onChanged: (String? value) {
-                              setState(() {
-                                dropdownValue = value!;
-                              });
-                            },
-                          ),
-                        ),
-                      ),
+                    // const Text('Choose Location',
+                    //     style: TextStyle(fontSize: 16)),
+                    // Container(
+                    //   padding: const EdgeInsets.symmetric(horizontal: 20),
+                    //   decoration: BoxDecoration(
+                    //       color: Colors.white,
+                    //       borderRadius: const BorderRadius.all(Radius.circular(8)),
+                    //     border: Border.all(color: appThemeColor)
+                    //   ),
+                    //   child: Center(
+                    //     child: DropdownButtonHideUnderline(
+                    //       child: DropdownButton(
+                    //         // iconEnabledColor: Colors.white,
+                    //         isExpanded: true,
+                    //         // hint: const Text('Select Waiter'),
+                    //         value: dropdownValue,
+                    //         items: list.map<DropdownMenuItem<String>>((String value) {
+                    //           return DropdownMenuItem<String>(value: value, child: Text(value,));
+                    //         }).toList(),
+                    //         onChanged: (String? value) {
+                    //           setState(() {
+                    //             dropdownValue = value!;
+                    //           });
+                    //         },
+                    //       ),
+                    //     ),
+                    //   ),
+                    // ),
+                    const SizedBox(
+                      height: 10,
                     ),
-                    const SizedBox(height: 10,),
                     // const Text('Choose Location',
                     //     style: TextStyle(fontSize: 16)),
                     // Container(
@@ -258,9 +266,7 @@ class _EntryScreenState extends State<EntryScreen> {
                     //     ),
                     //   ),
                     // ),
-                    const SizedBox(
-                      height: 20,
-                    ),
+                    const Spacer(),
                     Row(
                       children: [
                         SaveClearWidget(
@@ -268,7 +274,7 @@ class _EntryScreenState extends State<EntryScreen> {
                           onPressed: () {
                             if (_formKey.currentState!.validate()) {
                               setState(() => _isLoading = true);
-                              _saveUserData().then((value) {
+                              _addNewVehicle().then((value) {
                                 if (value) {
                                   // ScaffoldMessenger.of(context)
                                   //     .showSnackBar(SnackBar(
@@ -278,7 +284,9 @@ class _EntryScreenState extends State<EntryScreen> {
                                   //     style: TextStyle(color: Colors.white),
                                   //   ),
                                   // ));
-                                  autoDeleteAlertDialog(context: context, message: 'Added Successfully!');
+                                  autoDeleteAlertDialog(
+                                      context: context,
+                                      message: 'Added Successfully!');
                                   _clearData();
                                   // Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>const HomeMainScreen()));
                                 }
@@ -288,7 +296,7 @@ class _EntryScreenState extends State<EntryScreen> {
                           },
                         ),
                         GestureDetector(
-                          onTap: (){
+                          onTap: () {
                             _clearData();
                           },
                           child: Container(
@@ -296,14 +304,14 @@ class _EntryScreenState extends State<EntryScreen> {
                               padding: const EdgeInsets.all(10),
                               decoration: BoxDecoration(
                                   color: appThemeColor,
-                                  borderRadius: const BorderRadius.all(Radius.circular(5)),
+                                  borderRadius: const BorderRadius.all(
+                                      Radius.circular(5)),
                                   boxShadow: const [
                                     BoxShadow(
-                                        color: Colors.grey,
-                                        blurRadius: 6
-                                    )
-                                  ]
-                              ), child: const Icon(Icons.delete_outline,color: Colors.white,size: 26)),
+                                        color: Colors.grey, blurRadius: 6)
+                                  ]),
+                              child: const Icon(Icons.delete_outline,
+                                  color: Colors.white, size: 26)),
                         )
                       ],
                     )
@@ -318,10 +326,9 @@ class _EntryScreenState extends State<EntryScreen> {
     );
   }
 
-  _clearData()
-  {
+  _clearData() {
     _isLoading = false;
-    bikeSelected = true;
+    carSelected = true;
     _idNumber.clear();
     _idFocusNode.requestFocus();
     dropdownValue = list.first;
@@ -352,12 +359,23 @@ class BikeCarSelectionWidget extends StatelessWidget {
             decoration: BoxDecoration(
                 color: selectedStatus ? appThemeColor : Colors.white,
                 borderRadius: const BorderRadius.all(Radius.circular(8))),
-            child: Center(
-                child: Text(title,
+            child: Column(
+              children: [
+                Icon(
+                  title == 'Bike'
+                      ? Icons.directions_bike
+                      : Icons.directions_car,
+                  color: selectedStatus ? Colors.white : appThemeColor,
+                  size: 30,
+                ),
+                const SizedBox(height: 5),
+                Text(title,
                     style: TextStyle(
                         color: selectedStatus ? Colors.white : appThemeColor,
                         fontSize: 18,
-                        fontWeight: FontWeight.w600)))),
+                        fontWeight: FontWeight.w600)),
+              ],
+            )),
       ),
     );
   }
@@ -369,7 +387,8 @@ class DataTimeContainerWidget extends StatelessWidget {
 
   const DataTimeContainerWidget({
     super.key,
-    required this.value, required this.dateStatus,
+    required this.value,
+    required this.dateStatus,
   });
 
   @override
@@ -377,15 +396,27 @@ class DataTimeContainerWidget extends StatelessWidget {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(color: Colors.teal, border: Border.all(color: Colors.white),borderRadius: BorderRadius.only(
-          topLeft: dateStatus ? const Radius.circular(8) : const Radius.circular(0),
-          bottomLeft: dateStatus ? const Radius.circular(8) : const Radius.circular(0),
-            topRight: !dateStatus ? const Radius.circular(8) : const Radius.circular(0),
-            bottomRight: !dateStatus ? const Radius.circular(8) : const Radius.circular(0)
-        ),),
-        child: Text(value,textAlign: TextAlign.center,style: const TextStyle(color: Colors.white,fontSize: 16)),
+        decoration: BoxDecoration(
+          color: Colors.teal,
+          border: Border.all(color: Colors.white),
+          borderRadius: BorderRadius.only(
+              topLeft: dateStatus
+                  ? const Radius.circular(8)
+                  : const Radius.circular(0),
+              bottomLeft: dateStatus
+                  ? const Radius.circular(8)
+                  : const Radius.circular(0),
+              topRight: !dateStatus
+                  ? const Radius.circular(8)
+                  : const Radius.circular(0),
+              bottomRight: !dateStatus
+                  ? const Radius.circular(8)
+                  : const Radius.circular(0)),
+        ),
+        child: Text(value,
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: Colors.white, fontSize: 16)),
       ),
     );
   }
 }
-

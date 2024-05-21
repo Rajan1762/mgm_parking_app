@@ -1,3 +1,4 @@
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mgm_parking_app/model/profile_models/logout_model.dart';
@@ -9,6 +10,8 @@ import 'package:mgm_parking_app/utils/constants.dart';
 import 'package:mgm_parking_app/utils/custom_widgets/notification_widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../utils/colors.dart';
+import '../../utils/common_values.dart';
+import '../offline_screen.dart';
 
 class HomeMainScreen extends StatefulWidget {
   const HomeMainScreen({super.key});
@@ -27,6 +30,27 @@ class _HomeMainScreenState extends State<HomeMainScreen> {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.setString(shiftIdString, '');
     shiftIDValue = '';
+  }
+
+  @override
+  void initState() {
+    subscription = Connectivity().onConnectivityChanged.listen(_handlesConnectivity);
+    super.initState();
+  }
+
+  _handlesConnectivity(List<ConnectivityResult> result) async
+  {
+    print("connectivity result = $result");
+
+    if(result.contains(ConnectivityResult.none))
+    {
+      if(networkDownCount==0)
+      {
+        networkDownCount = 1;
+        await Navigator.of(context).push(MaterialPageRoute(builder: (context) => const OfflineScreen()));
+        setState(() {});
+      }
+    }
   }
 
   @override

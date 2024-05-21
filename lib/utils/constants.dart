@@ -6,7 +6,8 @@ import '../model/dummy_model.dart';
 const String baseUrl = "https://mgm.brosonetech.com";
 const String loginUserListURL = '$baseUrl/api/Login/list';
 const String exitVehicleDetailsURL = '$baseUrl/api/Entries/getDatabyID?id=';
-const String saveVehicleUrl = '/api/Entries';
+// const String saveVehicleUrl = '/api/Entries';
+const String saveVehicleUrl = '/api/Entries/api/postEntry';
 const String exitSaveVehicleUrl = '/api/OutCheck';
 const String reportUrl = '/api/Entries/getReports?fdate=';
 const String kDefaultNetworkImage = 'https://en.wikipedia.org/wiki/Food#/media/File:Good_Food_Display_-_NCI_Visuals_Online.jpg';
@@ -36,6 +37,10 @@ const String kDriverNameString = 'Driver Name';
 String kDriverNameValue = '';
 const String shiftIdString = 'shiftId';
 String shiftIDValue = '';
+const String cashString = 'Cash';
+const String cardString = 'Card';
+const String creditString = 'Credit';
+const String upiString = 'Upi';
 
 class VehicleValueModel{
   final int baseAmount;
