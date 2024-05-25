@@ -59,7 +59,9 @@ void main() async{
 Future<void> _getSharedPrefValue() async {
   final SharedPreferences prefs = await SharedPreferences.getInstance();
   shiftIDValue = prefs.getString(shiftIdString) ?? '';
-  print('shiftIDValue = $shiftIDValue');
+  userIDValue = prefs.getString(userIdString) ?? '';
+  logInTimeVal = prefs.getString(logInTimeString) ?? '';
+  print('shiftIDValue = $shiftIDValue, userIDValue = $userIDValue, logInTimeVal = $logInTimeVal');
 }
 
 class MyApp extends StatelessWidget {

@@ -58,6 +58,7 @@ class _EntryScreenState extends State<EntryScreen> {
   bool carSelected = true;
   List<XFile>? _mediaFileList;
   bool isLoading = false;
+  bool _touchStatus = false;
 
   @override
   void initState() {
@@ -126,196 +127,212 @@ class _EntryScreenState extends State<EntryScreen> {
           onTap: () {
             FocusManager.instance.primaryFocus?.unfocus();
           },
-          child: Container(
-            color: Colors.grey.shade300,
-            width: MediaQuery.of(context).size.width,
-            height: MediaQuery.of(context).size.height,
-            child: Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    ProfileScreenFieldWidget(
-                        fieldName: kIdString,
-                        focusNode: _idFocusNode,
-                        textEditingController: _idController,
-                        textInputType: TextInputType.number,
-                        validate: (value) {
-                          if (value == null || value.isEmpty) {
-                            _idFocusNode.requestFocus();
-                            return "Required field cannot be empty";
-                          }
-                          return null;
-                        },
-                        onChangValue: (v) {
-                          _idNumber.clear();
-                          _idNumber.write(v);
-                        }),
-                    // const SizedBox(height: 10),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 10.0),
-                      child: Column(
+          child: SingleChildScrollView(
+            child: Container(
+              color: Colors.grey.shade300,
+              width: MediaQuery.of(context).size.width,
+              height: MediaQuery.of(context).size.height * 0.796,
+              child: Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      ProfileScreenFieldWidget(
+                          fieldName: kIdString,
+                          focusNode: _idFocusNode,
+                          textEditingController: _idController,
+                          textInputType: TextInputType.number,
+                          validate: (value) {
+                            if (value == null || value.isEmpty) {
+                              _idFocusNode.requestFocus();
+                              return "Required field cannot be empty";
+                            }
+                            return null;
+                          },
+                          onChangValue: (v) {
+                            _idNumber.clear();
+                            _idNumber.write(v);
+                          }, touchStatus: _touchStatus, onTap: () {
+                        if(!_touchStatus)
+                        {
+                          setState(() {
+                            print('_touchStatus = $_touchStatus');
+                            _touchStatus = true;
+                            _idFocusNode.unfocus();
+                          });
+                          Future.delayed(const Duration(milliseconds: 500),(){
+                            setState(() {
+                              _idFocusNode.requestFocus();
+                            });
+                          });
+                        }
+                      }),
+                      // const SizedBox(height: 10),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 10.0),
+                        child: Column(
+                          children: [
+                            const Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                              children: [
+                                Text('Date', style: TextStyle(fontSize: 16)),
+                                Text('Time', style: TextStyle(fontSize: 16)),
+                              ],
+                            ),
+                            Consumer<DateTimeProvider>(
+                              builder: (BuildContext context,
+                                  DateTimeProvider provider, Widget? child) {
+                                return Row(
+                                  children: [
+                                    DataTimeContainerWidget(
+                                      value: provider.date,
+                                      dateStatus: true,
+                                    ),
+                                    DataTimeContainerWidget(
+                                      value: provider.time,
+                                      dateStatus: false,
+                                    ),
+                                  ],
+                                );
+                              },
+                            )
+                          ],
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 10.0),
+                        child: Row(
+                          children: [
+                            BikeCarSelectionWidget(
+                                title: 'Car',
+                                onTap: () {
+                                  carSelected = true;
+                                  setState(() {});
+                                },
+                                selectedStatus: carSelected),
+                            const SizedBox(width: 15),
+                            BikeCarSelectionWidget(
+                                title: 'Bike',
+                                onTap: () {
+                                  carSelected = false;
+                                  setState(() {});
+                                },
+                                selectedStatus: !carSelected)
+                          ],
+                        ),
+                      ),
+                      // const Text('Choose Location',
+                      //     style: TextStyle(fontSize: 16)),
+                      // Container(
+                      //   padding: const EdgeInsets.symmetric(horizontal: 20),
+                      //   decoration: BoxDecoration(
+                      //       color: Colors.white,
+                      //       borderRadius: const BorderRadius.all(Radius.circular(8)),
+                      //     border: Border.all(color: appThemeColor)
+                      //   ),
+                      //   child: Center(
+                      //     child: DropdownButtonHideUnderline(
+                      //       child: DropdownButton(
+                      //         // iconEnabledColor: Colors.white,
+                      //         isExpanded: true,
+                      //         // hint: const Text('Select Waiter'),
+                      //         value: dropdownValue,
+                      //         items: list.map<DropdownMenuItem<String>>((String value) {
+                      //           return DropdownMenuItem<String>(value: value, child: Text(value,));
+                      //         }).toList(),
+                      //         onChanged: (String? value) {
+                      //           setState(() {
+                      //             dropdownValue = value!;
+                      //           });
+                      //         },
+                      //       ),
+                      //     ),
+                      //   ),
+                      // ),
+                      const SizedBox(
+                        height: 10,
+                      ),
+                      // const Text('Choose Location',
+                      //     style: TextStyle(fontSize: 16)),
+                      // Container(
+                      //   padding: const EdgeInsets.symmetric(horizontal: 20),
+                      //   decoration: BoxDecoration(
+                      //       color: Colors.white,
+                      //       borderRadius: const BorderRadius.all(Radius.circular(8)),
+                      //       border: Border.all(color: appThemeColor)
+                      //   ),
+                      //   child: Center(
+                      //     child: DropdownButtonHideUnderline(
+                      //       child: DropdownButton(
+                      //         // iconEnabledColor: Colors.white,
+                      //         isExpanded: true,
+                      //         // hint: const Text('Select Waiter'),
+                      //         value: dropdownValue,
+                      //         items: list.map<DropdownMenuItem<String>>((String value) {
+                      //           return DropdownMenuItem<String>(value: value, child: Text(value,));
+                      //         }).toList(),
+                      //         onChanged: (String? value) {
+                      //           setState(() {
+                      //             dropdownValue = value!;
+                      //           });
+                      //         },
+                      //       ),
+                      //     ),
+                      //   ),
+                      // ),
+                      const Spacer(),
+                      Row(
                         children: [
-                          const Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceAround,
-                            children: [
-                              Text('Date', style: TextStyle(fontSize: 16)),
-                              Text('Time', style: TextStyle(fontSize: 16)),
-                            ],
-                          ),
-                          Consumer<DateTimeProvider>(
-                            builder: (BuildContext context,
-                                DateTimeProvider provider, Widget? child) {
-                              return Row(
-                                children: [
-                                  DataTimeContainerWidget(
-                                    value: provider.date,
-                                    dateStatus: true,
-                                  ),
-                                  DataTimeContainerWidget(
-                                    value: provider.time,
-                                    dateStatus: false,
-                                  ),
-                                ],
-                              );
+                          SaveClearWidget(
+                            title: 'Add',
+                            onPressed: () {
+                              if (_formKey.currentState!.validate()) {
+                                setState(() => _isLoading = true);
+                                _addNewVehicle().then((value) {
+                                  if (value) {
+                                    // ScaffoldMessenger.of(context)
+                                    //     .showSnackBar(SnackBar(
+                                    //   backgroundColor: appThemeColor,
+                                    //   content: const Text(
+                                    //     'Saved Successfully!',
+                                    //     style: TextStyle(color: Colors.white),
+                                    //   ),
+                                    // ));
+                                    autoDeleteAlertDialog(
+                                        context: context,
+                                        message: 'Added Successfully!');
+                                    _clearData();
+                                    // Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>const HomeMainScreen()));
+                                  }
+                                  // _formKey.currentState?.reset();
+                                });
+                              }
                             },
+                          ),
+                          GestureDetector(
+                            onTap: () {
+                              _clearData();
+                            },
+                            child: Container(
+                                margin: const EdgeInsets.only(left: 15),
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                    color: appThemeColor,
+                                    borderRadius: const BorderRadius.all(
+                                        Radius.circular(5)),
+                                    boxShadow: const [
+                                      BoxShadow(
+                                          color: Colors.grey, blurRadius: 6)
+                                    ]),
+                                child: const Icon(Icons.delete_outline,
+                                    color: Colors.white, size: 26)),
                           )
                         ],
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 10.0),
-                      child: Row(
-                        children: [
-                          BikeCarSelectionWidget(
-                              title: 'Car',
-                              onTap: () {
-                                carSelected = true;
-                                setState(() {});
-                              },
-                              selectedStatus: carSelected),
-                          const SizedBox(width: 15),
-                          BikeCarSelectionWidget(
-                              title: 'Bike',
-                              onTap: () {
-                                carSelected = false;
-                                setState(() {});
-                              },
-                              selectedStatus: !carSelected)
-                        ],
-                      ),
-                    ),
-                    // const Text('Choose Location',
-                    //     style: TextStyle(fontSize: 16)),
-                    // Container(
-                    //   padding: const EdgeInsets.symmetric(horizontal: 20),
-                    //   decoration: BoxDecoration(
-                    //       color: Colors.white,
-                    //       borderRadius: const BorderRadius.all(Radius.circular(8)),
-                    //     border: Border.all(color: appThemeColor)
-                    //   ),
-                    //   child: Center(
-                    //     child: DropdownButtonHideUnderline(
-                    //       child: DropdownButton(
-                    //         // iconEnabledColor: Colors.white,
-                    //         isExpanded: true,
-                    //         // hint: const Text('Select Waiter'),
-                    //         value: dropdownValue,
-                    //         items: list.map<DropdownMenuItem<String>>((String value) {
-                    //           return DropdownMenuItem<String>(value: value, child: Text(value,));
-                    //         }).toList(),
-                    //         onChanged: (String? value) {
-                    //           setState(() {
-                    //             dropdownValue = value!;
-                    //           });
-                    //         },
-                    //       ),
-                    //     ),
-                    //   ),
-                    // ),
-                    const SizedBox(
-                      height: 10,
-                    ),
-                    // const Text('Choose Location',
-                    //     style: TextStyle(fontSize: 16)),
-                    // Container(
-                    //   padding: const EdgeInsets.symmetric(horizontal: 20),
-                    //   decoration: BoxDecoration(
-                    //       color: Colors.white,
-                    //       borderRadius: const BorderRadius.all(Radius.circular(8)),
-                    //       border: Border.all(color: appThemeColor)
-                    //   ),
-                    //   child: Center(
-                    //     child: DropdownButtonHideUnderline(
-                    //       child: DropdownButton(
-                    //         // iconEnabledColor: Colors.white,
-                    //         isExpanded: true,
-                    //         // hint: const Text('Select Waiter'),
-                    //         value: dropdownValue,
-                    //         items: list.map<DropdownMenuItem<String>>((String value) {
-                    //           return DropdownMenuItem<String>(value: value, child: Text(value,));
-                    //         }).toList(),
-                    //         onChanged: (String? value) {
-                    //           setState(() {
-                    //             dropdownValue = value!;
-                    //           });
-                    //         },
-                    //       ),
-                    //     ),
-                    //   ),
-                    // ),
-                    const Spacer(),
-                    Row(
-                      children: [
-                        SaveClearWidget(
-                          title: 'Add',
-                          onPressed: () {
-                            if (_formKey.currentState!.validate()) {
-                              setState(() => _isLoading = true);
-                              _addNewVehicle().then((value) {
-                                if (value) {
-                                  // ScaffoldMessenger.of(context)
-                                  //     .showSnackBar(SnackBar(
-                                  //   backgroundColor: appThemeColor,
-                                  //   content: const Text(
-                                  //     'Saved Successfully!',
-                                  //     style: TextStyle(color: Colors.white),
-                                  //   ),
-                                  // ));
-                                  autoDeleteAlertDialog(
-                                      context: context,
-                                      message: 'Added Successfully!');
-                                  _clearData();
-                                  // Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>const HomeMainScreen()));
-                                }
-                                // _formKey.currentState?.reset();
-                              });
-                            }
-                          },
-                        ),
-                        GestureDetector(
-                          onTap: () {
-                            _clearData();
-                          },
-                          child: Container(
-                              margin: const EdgeInsets.only(left: 15),
-                              padding: const EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                  color: appThemeColor,
-                                  borderRadius: const BorderRadius.all(
-                                      Radius.circular(5)),
-                                  boxShadow: const [
-                                    BoxShadow(
-                                        color: Colors.grey, blurRadius: 6)
-                                  ]),
-                              child: const Icon(Icons.delete_outline,
-                                  color: Colors.white, size: 26)),
-                        )
-                      ],
-                    )
-                  ],
+                      )
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -333,6 +350,7 @@ class _EntryScreenState extends State<EntryScreen> {
     _idFocusNode.requestFocus();
     dropdownValue = list.first;
     _idController.clear();
+    _touchStatus = false;
     setState(() {});
   }
 }

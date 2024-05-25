@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:mgm_parking_app/model/profile_models/login_model.dart';
 import 'package:mgm_parking_app/model/profile_models/login_response_model.dart';
+import 'package:mgm_parking_app/utils/constants.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../model/errorResponseModel.dart';
 import '../../model/profile_models/login_list_model.dart';
 import '../../sevices/network_services/profile_services.dart';
@@ -183,8 +186,11 @@ class _LoginScreenState extends State<LoginScreen> {
                                         content: Text('UserName Or Password is Incorrect'),
                                       ));
                                     }else{
-                                      Navigator.of(context).pushReplacement(MaterialPageRoute(
-                                          builder: (context) => const HomeMainScreen()));
+                                      await _saveSharedPreferenceData();
+                                      if(context.mounted){
+                                        Navigator.of(context).pushReplacement(MaterialPageRoute(
+                                            builder: (context) => const HomeMainScreen()));
+                                      }
                                     }
                                 } else {
                                   showErrorAlertDialog(context: context, message: response.errorMessage ?? '');
@@ -231,5 +237,11 @@ class _LoginScreenState extends State<LoginScreen> {
     return const OutlineInputBorder(
         borderSide: BorderSide(color: Colors.white),
         borderRadius: BorderRadius.all(Radius.circular(5)));
+  }
+
+  Future<void> _saveSharedPreferenceData() async {
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    logInTimeVal = DateFormat("dd-MM-yyyy HH:mm:ss").format(DateTime.now());
+    preferences.setString(logInTimeString, logInTimeVal);
   }
 }

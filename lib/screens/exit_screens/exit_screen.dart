@@ -4,9 +4,12 @@ import 'package:mgm_parking_app/model/errorResponseModel.dart';
 import 'package:mgm_parking_app/model/exit_screen_model/exit_screen_models.dart';
 import 'package:mgm_parking_app/utils/colors.dart';
 import 'package:mgm_parking_app/utils/custom_widgets/notification_widgets.dart';
+import 'package:sunmi_printer_plus/column_maker.dart';
+import 'package:sunmi_printer_plus/enums.dart';
 import 'package:uuid/uuid.dart';
 import '../../model/exit_screen_model/exit_screen_response_model.dart';
 import '../../sevices/network_services/exit_screen_services.dart';
+import '../../sevices/print_services/sunmi.dart';
 import '../../utils/common_functions.dart';
 import '../../utils/constants.dart';
 import '../../utils/custom_widgets/common_widget.dart';
@@ -35,6 +38,8 @@ class _ExitScreenState extends State<ExitScreen> {
   int seconds = 0;
   int noOfDays = 0;
   int remainingHours = 0;
+  bool textFieldVisibility = true;
+  bool _touchStatus = false;
   ErrorResponseModel? errorResponseModel;
   Map<String, bool> paymentModeMap = {
     cashString: true,
@@ -54,10 +59,35 @@ class _ExitScreenState extends State<ExitScreen> {
     setState(() {});
   }
 
+  printSunmiReceipt(){
+    print('userIDValue = $userIDValue');
+    List<ColumnMaker> cList = [];
+    cList.add(alignColumn(text: 'UHF ID       : ${entryModel?.vehicleNo}',));
+    cList.add(alignColumn(text: 'Vehicle Type : ${entryModel?.vehicleType}'));
+    cList.add(alignColumn(text: 'IN  : $entryDateTime'));
+    cList.add(alignColumn(text: 'OUT : $exitDateTime'));
+    cList.add(alignColumn(text: 'Time Duration : $noOfDays : ${remainingHours.toString().padLeft(2, '0')} : ${minutes.toString().padLeft(2, '0')} : ${seconds.toString().padLeft(2, '0')}'));
+    cList.add(alignColumn(text: 'Fare Rs : $rupeeSymbol$amount /-'));
+    cList.add(alignColumn(text: 'Payment Mode : ${paymentModeMap.entries.where((data) => data.value).map((data)=>data.key).first}'));
+    cList.add(alignColumn(text: '\n--------------------------------',));
+    cList.add(alignColumn(text: 'Print Date : $exitDateTime\n\n\n'));
+    Sunmi printer = Sunmi();
+    printer.printReceipt(cl: cList, userName: userIDValue);
+  }
+
+  ColumnMaker alignColumn({required String text, SunmiPrintAlign? align})
+  {
+    return ColumnMaker(
+      text: text,
+      width: 10,
+      align: align ?? SunmiPrintAlign.LEFT,
+    );
+  }
+
   Future<ExitResponseModel?> _saveExitVehicleData() async {
     print('shiftIDValue = $shiftIDValue');
     var dateTime = DateTime.now();
-    return await saveExitVehicle(
+    ExitResponseModel? exitResponseModel =  await saveExitVehicle(
         exitSaveModel: ExitSaveModel(
       uniqueId: const Uuid().v4(),
       vehicleType: entryModel?.vehicleType,
@@ -83,6 +113,8 @@ class _ExitScreenState extends State<ExitScreen> {
       refNo: '',
       printDate: DateFormat("yyyy-MM-dd'T'HH:mm:ss").format(dateTime),
     ));
+    await printSunmiReceipt();
+    return exitResponseModel;
   }
 
   Future<ErrorResponseModel?> _checkVehicleDetails() async {
@@ -94,6 +126,7 @@ class _ExitScreenState extends State<ExitScreen> {
       }
       entryModel = errorResponseModel?.obj;
       calculateAmount(entryModel!);
+      textFieldVisibility = false;
     }
     return errorResponseModel;
   }
@@ -132,6 +165,13 @@ class _ExitScreenState extends State<ExitScreen> {
   }
 
   @override
+  void dispose() {
+    _idController.dispose();
+    _idFocusNode.dispose();
+    super.dispose();
+  }
+
+  @override
   void initState() {
     _idFocusNode.requestFocus();
     super.initState();
@@ -156,23 +196,40 @@ class _ExitScreenState extends State<ExitScreen> {
                     child: SingleChildScrollView(
                       child: Column(
                         children: [
-                          ProfileScreenFieldWidget(
-                              fieldName: kIdString,
-                              focusNode: _idFocusNode,
-                              textEditingController: _idController,
-                              textInputType: TextInputType.number,
-                              validate: (value) {
-                                if (value == null || value.isEmpty) {
-                                  _idFocusNode.requestFocus();
-                                  return "Required field cannot be empty";
-                                }
-                                return null;
-                              },
-                              onChangValue: (v) {
-                                _idNumber.clear();
-                                _idNumber.write(v);
-                              }),
-                          const SizedBox(height: 20),
+                          Visibility(
+                            visible: textFieldVisibility,
+                            child: ProfileScreenFieldWidget(
+                                fieldName: kIdString,
+                                focusNode: _idFocusNode,
+                                textEditingController: _idController,
+                                textInputType: TextInputType.number,
+                                validate: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    _idFocusNode.requestFocus();
+                                    return "Required field cannot be empty";
+                                  }
+                                  return null;
+                                },
+                                onChangValue: (v) {
+                                  _idNumber.clear();
+                                  _idNumber.write(v);
+                                }, touchStatus: _touchStatus, onTap: () {
+                              if(!_touchStatus)
+                              {
+                                setState(() {
+                                  print('_touchStatus = $_touchStatus');
+                                  _touchStatus = true;
+                                  _idFocusNode.unfocus();
+                                });
+                                Future.delayed(const Duration(milliseconds: 500),(){
+                                  setState(() {
+                                    _idFocusNode.requestFocus();
+                                  });
+                                });
+                              }
+                            },),
+                          ),
+                          SizedBox(height: textFieldVisibility ? 20 : 5),
                           Row(
                             children: [
                               SaveClearWidget(
@@ -318,8 +375,8 @@ class _ExitScreenState extends State<ExitScreen> {
                             ),
                           ),
                           Container(
-                            padding: const EdgeInsets.all(5),
-                            margin: const EdgeInsets.symmetric(vertical: 10),
+                            padding: const EdgeInsets.symmetric(horizontal: 5,vertical: 5),
+                            margin: const EdgeInsets.symmetric(vertical: 5),
                             decoration: BoxDecoration(
                                 color: Colors.white,
                                 borderRadius:
@@ -436,6 +493,8 @@ class _ExitScreenState extends State<ExitScreen> {
     seconds = 0;
     noOfDays = 0;
     remainingHours = 0;
+    textFieldVisibility = true;
+    _touchStatus = false;
     setState(() => _isLoading = false);
   }
 }

@@ -17,14 +17,12 @@ class _OfflineScreenState extends State<OfflineScreen> {
 
   @override
   void initState() {
-    print('offiline screen init method called');
     super.initState();
   }
 
   @override
   void dispose() {
     _subscription?.cancel();
-    print('offiline screen dispose method called');
     super.dispose();
   }
 

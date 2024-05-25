@@ -12,14 +12,15 @@ class ProfileScreenFieldWidget extends StatelessWidget {
   final int? numberTextLength;
   final FocusNode focusNode;
   final TextEditingController? textEditingController;
-
+  final bool touchStatus;
+  final Function() onTap;
   const ProfileScreenFieldWidget({
     super.key,
     required this.fieldName,
     // required this.fieldValue,
     required this.validate,
     required this.onChangValue,
-    this.textInputType, this.numberTextLength, required this.focusNode, required this.textEditingController
+    this.textInputType, this.numberTextLength, required this.focusNode, required this.textEditingController, required this.touchStatus, required this.onTap
   });
 
   @override
@@ -44,12 +45,14 @@ class ProfileScreenFieldWidget extends StatelessWidget {
             child: TextFormField(
               maxLength: numberTextLength,
               controller: textEditingController,
-              keyboardType: textInputType ?? TextInputType.text,
+              // keyboardType: textInputType ?? TextInputType.text,
+              keyboardType: touchStatus ? TextInputType.text : TextInputType.none,
               decoration: profileTextFieldStyles(label: ''),
               // initialValue: fieldValue,
               focusNode: focusNode,
               validator: validate,
               onChanged: onChangValue,
+              onTap: onTap,
               // onSaved: (v){},
             ),
           ),

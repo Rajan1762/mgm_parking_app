@@ -43,6 +43,8 @@ const String cashString = 'Cash';
 const String cardString = 'Card';
 const String creditString = 'Credit';
 const String upiString = 'Upi';
+const String logInTimeString = 'logInTime';
+String logInTimeVal = '';
 
 class VehicleValueModel{
   final int baseAmount;
