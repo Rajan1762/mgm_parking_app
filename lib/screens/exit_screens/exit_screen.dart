@@ -87,6 +87,7 @@ class _ExitScreenState extends State<ExitScreen> {
   Future<ExitResponseModel?> _saveExitVehicleData() async {
     print('shiftIDValue = $shiftIDValue');
     var dateTime = DateTime.now();
+    String paymentMode = paymentModeMap.entries.where((data) => data.value).map((data)=>data.key).first;
     ExitResponseModel? exitResponseModel =  await saveExitVehicle(
         exitSaveModel: ExitSaveModel(
       uniqueId: const Uuid().v4(),
@@ -106,14 +107,16 @@ class _ExitScreenState extends State<ExitScreen> {
       status: 'D',
       booth: '1',
       userid: '1',
-      paymode: paymentModeMap.entries.where((data) => data.value).map((data)=>data.key).first,
+      paymode: paymentMode,
       remarks: '',
       shiftid: shiftIDValue,
       userName: '',
       refNo: '',
       printDate: DateFormat("yyyy-MM-dd'T'HH:mm:ss").format(dateTime),
     ));
-    await printSunmiReceipt();
+    if (paymentMode != creditString && amount != 0) {
+      await printSunmiReceipt();
+    }
     return exitResponseModel;
   }
 
