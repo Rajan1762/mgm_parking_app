@@ -54,10 +54,14 @@ class VehicleValueModel{
 }
 
 VehicleValueModel setVehicleValues({required String vehicleType}){
+
   return VehicleValueModel(
-      baseAmount: vehicleType == '2' ? 30 : 50,
-      extraAmount: vehicleType == '2' ? 15 : 25,
-      perDayAmount: vehicleType == '2' ? 250 : 400);
+      baseAmount: vehicleType == '1' ? 50 : vehicleType == '2' ? 30 : (vehicleType == '4' || vehicleType == '5') ? 20 : 0,
+      extraAmount: vehicleType == '1' ? 25 : vehicleType == '2' ? 15 : (vehicleType == '4' || vehicleType == '5') ? 10 : 0,
+      perDayAmount: vehicleType == '1' ? 400 : vehicleType == '2' ? 250 : (vehicleType == '4' || vehicleType == '5') ? 250 : 0);
+      // baseAmount: vehicleType == '2' ? 30 : 50,
+      // extraAmount: vehicleType == '2' ? 15 : 25,
+      // perDayAmount: vehicleType == '2' ? 250 : 400);
 }
 
 List<DealsCardModel>? dealsCardList;

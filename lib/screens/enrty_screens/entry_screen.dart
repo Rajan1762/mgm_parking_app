@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mgm_parking_app/sevices/network_services/profile_services.dart';
 import 'package:mgm_parking_app/sevices/provider_services/date_time_provider.dart';
@@ -56,6 +57,7 @@ class _EntryScreenState extends State<EntryScreen> {
   String dropdownValue = list.first;
   String dropdownDriverValue = driverList.first;
   bool carSelected = true;
+  List<bool> vehicleSelectedStatus = [true,false,false,false,false];
   List<XFile>? _mediaFileList;
   bool isLoading = false;
   bool _touchStatus = false;
@@ -93,14 +95,20 @@ class _EntryScreenState extends State<EntryScreen> {
       final bytes = File(_mediaFileList![0].path).readAsBytesSync();
       img64 = base64Encode(bytes);
     }
-    print('dateTime = $dateTime');
+    print('dateTime = $dateTime vehicle index = ${vehicleSelectedStatus.asMap()
+        .entries
+        .where((entry) => entry.value)
+        .map((entry) => entry.key).first + 1}');
     try {
       await saveEntryVehicle(
         registerModel: EntryModel(
             // transid: 1,
             uniqueId: const Uuid().v4(),
             vehicleNo: _idNumber.toString(),
-            vehicleType: carSelected ? "1" : "2",
+            vehicleType: '${vehicleSelectedStatus.asMap()
+                .entries
+                .where((entry) => entry.value)
+                .map((entry) => entry.key).first + 1}',
             barcode: "",
             date: '$dateTime',
             intime: '$dateTime',
@@ -202,57 +210,59 @@ class _EntryScreenState extends State<EntryScreen> {
                         ),
                       ),
                       Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 10.0),
+                        padding: const EdgeInsets.only(top: 10.0),
                         child: Row(
                           children: [
                             BikeCarSelectionWidget(
                                 title: 'Car',
                                 onTap: () {
-                                  carSelected = true;
-                                  setState(() {});
+                                  chooseVehicle(index: 0);
                                 },
-                                selectedStatus: carSelected),
+                                selectedStatus: vehicleSelectedStatus[0], iconData: Icons.directions_car),
                             const SizedBox(width: 15),
                             BikeCarSelectionWidget(
                                 title: 'Bike',
                                 onTap: () {
-                                  carSelected = false;
-                                  setState(() {});
+                                  chooseVehicle(index: 1);
                                 },
-                                selectedStatus: !carSelected)
+                                selectedStatus: vehicleSelectedStatus[1], iconData: Icons.directions_bike)
                           ],
                         ),
                       ),
-                      // const Text('Choose Location',
-                      //     style: TextStyle(fontSize: 16)),
-                      // Container(
-                      //   padding: const EdgeInsets.symmetric(horizontal: 20),
-                      //   decoration: BoxDecoration(
-                      //       color: Colors.white,
-                      //       borderRadius: const BorderRadius.all(Radius.circular(8)),
-                      //     border: Border.all(color: appThemeColor)
-                      //   ),
-                      //   child: Center(
-                      //     child: DropdownButtonHideUnderline(
-                      //       child: DropdownButton(
-                      //         // iconEnabledColor: Colors.white,
-                      //         isExpanded: true,
-                      //         // hint: const Text('Select Waiter'),
-                      //         value: dropdownValue,
-                      //         items: list.map<DropdownMenuItem<String>>((String value) {
-                      //           return DropdownMenuItem<String>(value: value, child: Text(value,));
-                      //         }).toList(),
-                      //         onChanged: (String? value) {
-                      //           setState(() {
-                      //             dropdownValue = value!;
-                      //           });
-                      //         },
-                      //       ),
-                      //     ),
-                      //   ),
-                      // ),
-                      const SizedBox(
-                        height: 10,
+                      Padding(
+                        padding: const EdgeInsets.only(top: 10.0),
+                        child: Row(
+                          children: [
+                            BikeCarSelectionWidget(
+                                title: 'Staff Vehicle',
+                                onTap: () {
+                                  chooseVehicle(index: 2);
+                                },
+                                selectedStatus: vehicleSelectedStatus[2], iconData: FontAwesomeIcons.busSimple),
+                            const SizedBox(width: 15),
+                            BikeCarSelectionWidget(
+                                title: 'Dialysis',
+                                onTap: () {
+                                  chooseVehicle(index: 3);
+                                },
+                                selectedStatus: vehicleSelectedStatus[3], iconData: Icons.directions_railway_outlined)
+                          ],
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 10.0),
+                        child: Row(
+                          children: [
+
+                            BikeCarSelectionWidget(
+                                title: 'IN Patient',
+                                onTap: () {
+                                  chooseVehicle(index: 4);
+                                },
+                                selectedStatus: vehicleSelectedStatus[4], iconData: FontAwesomeIcons.truckMedical),
+                            
+                          ],
+                        ),
                       ),
                       // const Text('Choose Location',
                       //     style: TextStyle(fontSize: 16)),
@@ -343,6 +353,19 @@ class _EntryScreenState extends State<EntryScreen> {
     );
   }
 
+  void chooseVehicle({required int index}) {
+    for(int i = 0;i<vehicleSelectedStatus.length;i++)
+      {
+        if(i==index)
+          {
+            vehicleSelectedStatus[i] = true;
+          }else{
+          vehicleSelectedStatus[i] = false;
+        }
+      }
+    setState(() {});
+  }
+
   _clearData() {
     _isLoading = false;
     carSelected = true;
@@ -357,6 +380,7 @@ class _EntryScreenState extends State<EntryScreen> {
 
 class BikeCarSelectionWidget extends StatelessWidget {
   final String title;
+  final IconData iconData;
   final Function() onTap;
   final bool selectedStatus;
 
@@ -364,7 +388,7 @@ class BikeCarSelectionWidget extends StatelessWidget {
     super.key,
     required this.title,
     required this.onTap,
-    required this.selectedStatus,
+    required this.selectedStatus, required this.iconData,
   });
 
   @override
@@ -373,19 +397,20 @@ class BikeCarSelectionWidget extends StatelessWidget {
       child: GestureDetector(
         onTap: onTap,
         child: Container(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(5),
             decoration: BoxDecoration(
                 color: selectedStatus ? appThemeColor : Colors.white,
                 borderRadius: const BorderRadius.all(Radius.circular(8))),
             child: Column(
               children: [
-                Icon(
-                  title == 'Bike'
-                      ? Icons.directions_bike
-                      : Icons.directions_car,
-                  color: selectedStatus ? Colors.white : appThemeColor,
-                  size: 30,
-                ),
+                Icon(iconData, color: selectedStatus ? Colors.white : appThemeColor, size: 30,),
+                // Icon(
+                //   title == 'Bike'
+                //       ? Icons.directions_bike
+                //       : Icons.directions_car,
+                //   color: selectedStatus ? Colors.white : appThemeColor,
+                //   size: 30,
+                // ),
                 const SizedBox(height: 5),
                 Text(title,
                     style: TextStyle(
