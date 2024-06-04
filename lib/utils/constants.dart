@@ -46,6 +46,8 @@ const String upiString = 'Upi';
 const String logInTimeString = 'logInTime';
 String logInTimeVal = '';
 
+List<String> vehicleTypeList = ['Car','Bike','Staff Vehicle','Dialysis','IN Patient'];
+
 class VehicleValueModel{
   final int baseAmount;
   final int extraAmount;

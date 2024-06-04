@@ -7,9 +7,11 @@ import 'package:mgm_parking_app/sevices/network_services/profile_services.dart';
 import 'package:mgm_parking_app/sevices/provider_services/date_time_provider.dart';
 import 'package:mgm_parking_app/utils/custom_widgets/loading_widgets.dart';
 import 'package:provider/provider.dart';
+import 'package:qr_bar_code_scanner_dialog/qr_bar_code_scanner_dialog.dart';
 import 'package:uuid/uuid.dart';
 import '../../model/entry_model.dart';
 import '../../utils/colors.dart';
+import '../../utils/common_values.dart';
 import '../../utils/constants.dart';
 import '../../utils/custom_widgets/common_widget.dart';
 import '../../utils/custom_widgets/notification_widgets.dart';
@@ -51,6 +53,7 @@ class _EntryScreenState extends State<EntryScreen> {
   final FocusNode _driveNameFocusNode = FocusNode();
   final FocusNode _driverNumberFocusNode = FocusNode();
   final TextEditingController _idController = TextEditingController();
+  final _qrBarCodeScannerDialogPlugin = QrBarCodeScannerDialog();
 
   bool obscureStatus = true;
   bool _isLoading = false;
@@ -126,6 +129,45 @@ class _EntryScreenState extends State<EntryScreen> {
     }
     return true;
   }
+  // openQRCodeScanner(BuildContext context) async {
+  //   final additionalParameters = BarcodeAdditionalParameters(
+  //     minimumTextLength: 3,
+  //     maximumTextLength: 45,
+  //     minimum1DBarcodesQuietZone: 10,
+  //     codeDensity: CodeDensity.HIGH,
+  //   );
+  //   var config = BarcodeScannerConfiguration(
+  //     finderLineColor: Colors.red,
+  //     // cancelButtonTitle: "Cancel",
+  //     finderTextHint: "Scan Barcode",
+  //     successBeepEnabled: true,
+  //     additionalParameters: additionalParameters,
+  //     barcodeFormats: barcodeFormatsRepository.selectedFormats.toList(),
+  //     orientationLockMode: OrientationLockMode.PORTRAIT,
+  //   );
+  //
+  //   try {
+  //     var result = await ScanbotBarcodeSdk.startBarcodeScanner(config);
+  //     print('result = $result');
+  //     if (result.operationResult == OperationResult.SUCCESS) {
+  //       setState(() {
+  //         _idController.text = result.barcodeItems[0].text ?? '';
+  //       });
+  //       print('result = ${result.barcodeItems[0].text}');
+  //     }
+  //     //   Navigator.of(context).push(
+  //     //     MaterialPageRoute(
+  //     //         builder: (context) => BarcodesResultPreviewWidget(result)),
+  //     //   );
+  //     // }
+  //   } catch (e) {
+  //     if(context.mounted)
+  //       {
+  //         showErrorAlertDialog(context: context, message: e.toString());
+  //         print('error occurred $e');
+  //       }
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -145,38 +187,56 @@ class _EntryScreenState extends State<EntryScreen> {
                 child: Form(
                   key: _formKey,
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      ProfileScreenFieldWidget(
-                          fieldName: kIdString,
-                          focusNode: _idFocusNode,
-                          textEditingController: _idController,
-                          textInputType: TextInputType.number,
-                          validate: (value) {
-                            if (value == null || value.isEmpty) {
-                              _idFocusNode.requestFocus();
-                              return "Required field cannot be empty";
-                            }
-                            return null;
-                          },
-                          onChangValue: (v) {
-                            _idNumber.clear();
-                            _idNumber.write(v);
-                          }, touchStatus: _touchStatus, onTap: () {
-                        if(!_touchStatus)
-                        {
-                          setState(() {
-                            print('_touchStatus = $_touchStatus');
-                            _touchStatus = true;
-                            _idFocusNode.unfocus();
-                          });
-                          Future.delayed(const Duration(milliseconds: 500),(){
-                            setState(() {
-                              _idFocusNode.requestFocus();
-                            });
-                          });
-                        }
-                      }),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Expanded(
+                            child: ProfileScreenFieldWidget(
+                                fieldName: kIdString,
+                                focusNode: _idFocusNode,
+                                textEditingController: _idController,
+                                textInputType: TextInputType.number,
+                                validate: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    _idFocusNode.requestFocus();
+                                    return "Required field cannot be empty";
+                                  }
+                                  return null;
+                                },
+                                onChangValue: (v) {
+                                  _idNumber.clear();
+                                  _idNumber.write(v);
+                                }, touchStatus: _touchStatus, onTap: () {
+                              if(!_touchStatus)
+                              {
+                                setState(() {
+                                  print('_touchStatus = $_touchStatus');
+                                  _touchStatus = true;
+                                  _idFocusNode.unfocus();
+                                });
+                                Future.delayed(const Duration(milliseconds: 500),(){
+                                  setState(() {
+                                    _idFocusNode.requestFocus();
+                                  });
+                                });
+                              }
+                            }),
+                          ),
+                          const SizedBox(width: 15),
+                          QrCodeScannerWidget(onTap: () {
+                            _qrBarCodeScannerDialogPlugin.getScannedQrBarCode(
+                                context: context,
+                                onCode: (code) {
+                                  setState(() {
+                                    _idController.text = code??'';
+                                    _idNumber.clear();
+                                    _idNumber.write(code);
+                                  });
+                                });
+                          },)
+                        ],
+                      ),
                       // const SizedBox(height: 10),
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 10.0),
@@ -375,6 +435,35 @@ class _EntryScreenState extends State<EntryScreen> {
     _idController.clear();
     _touchStatus = false;
     setState(() {});
+  }
+}
+
+class QrCodeScannerWidget extends StatelessWidget {
+  final Function() onTap;
+  const QrCodeScannerWidget({
+    super.key, required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(7),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: const BorderRadius.all(Radius.circular(5)),
+          border: Border.all(color: appThemeColor),
+          boxShadow: const [
+            BoxShadow(
+              color: Colors.grey,
+              blurRadius: 3
+            )
+          ]
+        ),
+        child: const Icon(Icons.qr_code_2_outlined,size: 30,),
+      ),
+    );
   }
 }
 

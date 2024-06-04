@@ -9,4 +9,3 @@ List<List<FloorTableModel>> deActiveFloorTableVal = [];
 int networkDownCount = 0;
 StreamSubscription<List<ConnectivityResult>>? subscription;
 bool alertOkStatus = false;
-

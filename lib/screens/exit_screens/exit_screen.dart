@@ -4,6 +4,7 @@ import 'package:mgm_parking_app/model/errorResponseModel.dart';
 import 'package:mgm_parking_app/model/exit_screen_model/exit_screen_models.dart';
 import 'package:mgm_parking_app/utils/colors.dart';
 import 'package:mgm_parking_app/utils/custom_widgets/notification_widgets.dart';
+import 'package:qr_bar_code_scanner_dialog/qr_bar_code_scanner_dialog.dart';
 import 'package:sunmi_printer_plus/column_maker.dart';
 import 'package:sunmi_printer_plus/enums.dart';
 import 'package:uuid/uuid.dart';
@@ -16,6 +17,8 @@ import '../../utils/custom_widgets/common_widget.dart';
 import '../../utils/custom_widgets/loading_widgets.dart';
 import '../../utils/custom_widgets/profile_screen_widget.dart';
 import 'package:intl/intl.dart';
+
+import '../enrty_screens/entry_screen.dart';
 
 class ExitScreen extends StatefulWidget {
   const ExitScreen({super.key});
@@ -40,6 +43,7 @@ class _ExitScreenState extends State<ExitScreen> {
   int remainingHours = 0;
   bool textFieldVisibility = true;
   bool _touchStatus = false;
+  final _qrBarCodeScannerDialogPlugin = QrBarCodeScannerDialog();
   ErrorResponseModel? errorResponseModel;
   Map<String, bool> paymentModeMap = {
     cashString: true,
@@ -99,13 +103,13 @@ class _ExitScreenState extends State<ExitScreen> {
       //formatTime(dateTime),
       barcode: '',
       duration:
-          '${hours.toString().padLeft(2, '0')} : ${minutes.toString().padLeft(2, '0')} : ${seconds.toString().padLeft(2, '0')}',
+      '${hours.toString().padLeft(2, '0')} : ${minutes.toString().padLeft(2, '0')} : ${seconds.toString().padLeft(2, '0')}',
       intime: DateFormat("yyyy-MM-dd HH:mm:ss")
           .format(DateTime.parse( entryModel!.date!)),
       payment: '$amount',
       createdate: entryModel?.date,
       status: 'D',
-      booth: '1',
+      booth: '2',
       userid: '1',
       paymode: paymentMode,
       remarks: '',
@@ -201,36 +205,55 @@ class _ExitScreenState extends State<ExitScreen> {
                         children: [
                           Visibility(
                             visible: textFieldVisibility,
-                            child: ProfileScreenFieldWidget(
-                                fieldName: kIdString,
-                                focusNode: _idFocusNode,
-                                textEditingController: _idController,
-                                textInputType: TextInputType.number,
-                                validate: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    _idFocusNode.requestFocus();
-                                    return "Required field cannot be empty";
-                                  }
-                                  return null;
-                                },
-                                onChangValue: (v) {
-                                  _idNumber.clear();
-                                  _idNumber.write(v);
-                                }, touchStatus: _touchStatus, onTap: () {
-                              if(!_touchStatus)
-                              {
-                                setState(() {
-                                  print('_touchStatus = $_touchStatus');
-                                  _touchStatus = true;
-                                  _idFocusNode.unfocus();
-                                });
-                                Future.delayed(const Duration(milliseconds: 500),(){
-                                  setState(() {
-                                    _idFocusNode.requestFocus();
-                                  });
-                                });
-                              }
-                            },),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Expanded(
+                                  child: ProfileScreenFieldWidget(
+                                      fieldName: kIdString,
+                                      focusNode: _idFocusNode,
+                                      textEditingController: _idController,
+                                      textInputType: TextInputType.number,
+                                      validate: (value) {
+                                        if (value == null || value.isEmpty) {
+                                          _idFocusNode.requestFocus();
+                                          return "Required field cannot be empty";
+                                        }
+                                        return null;
+                                      },
+                                      onChangValue: (v) {
+                                        _idNumber.clear();
+                                        _idNumber.write(v);
+                                      }, touchStatus: _touchStatus, onTap: () {
+                                    if(!_touchStatus)
+                                    {
+                                      setState(() {
+                                        print('_touchStatus = $_touchStatus');
+                                        _touchStatus = true;
+                                        _idFocusNode.unfocus();
+                                      });
+                                      Future.delayed(const Duration(milliseconds: 500),(){
+                                        setState(() {
+                                          _idFocusNode.requestFocus();
+                                        });
+                                      });
+                                    }
+                                  },),
+                                ),
+                                const SizedBox(width: 15),
+                                QrCodeScannerWidget(onTap: () {
+                                  _qrBarCodeScannerDialogPlugin.getScannedQrBarCode(
+                                      context: context,
+                                      onCode: (code) {
+                                        setState(() {
+                                          _idController.text = code??'';
+                                          _idNumber.clear();
+                                          _idNumber.write(code);
+                                        });
+                                      });
+                                },)
+                              ],
+                            ),
                           ),
                           SizedBox(height: textFieldVisibility ? 20 : 5),
                           Row(
@@ -313,10 +336,7 @@ class _ExitScreenState extends State<ExitScreen> {
                                   ExitFieldWidgets(
                                       title: 'Vehicle Type',
                                       value: entryModel != null
-                                          ? entryModel?.vehicleType == '1'
-                                              ? 'Car'
-                                              : 'Bike'
-                                          : ''),
+                                          ? vehicleTypeList[(int.parse(entryModel?.vehicleType??'1'))-1] : ''),
                                   // ExitFieldWidgets(
                                   //     title: 'Status',
                                   //     value: entryModel?.status ?? ''),
