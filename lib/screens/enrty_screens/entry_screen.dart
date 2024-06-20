@@ -313,7 +313,6 @@ class _EntryScreenState extends State<EntryScreen> {
                         padding: const EdgeInsets.only(top: 10.0),
                         child: Row(
                           children: [
-
                             BikeCarSelectionWidget(
                                 title: 'IN Patient',
                                 onTap: () {
