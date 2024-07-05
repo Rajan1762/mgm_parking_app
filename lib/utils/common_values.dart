@@ -9,3 +9,6 @@ List<List<FloorTableModel>> deActiveFloorTableVal = [];
 int networkDownCount = 0;
 StreamSubscription<List<ConnectivityResult>>? subscription;
 bool alertOkStatus = false;
+List<Map<String,String>>? topEntryValue;
+List<Map<String,String>>? topExitValue;
+bool entryExitStatus = true;

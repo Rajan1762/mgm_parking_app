@@ -1,8 +1,6 @@
-import 'dart:io';
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:mgm_parking_app/screens/profile_screens/login_screen.dart';
+import 'package:mgm_parking_app/screens/profile_screens/top_entries_page.dart';
 import 'package:mgm_parking_app/sevices/network_services/profile_services.dart';
 import 'package:mgm_parking_app/sevices/provider_services/date_time_provider.dart';
 import 'package:mgm_parking_app/utils/custom_widgets/loading_widgets.dart';
@@ -10,6 +8,7 @@ import 'package:provider/provider.dart';
 import 'package:qr_bar_code_scanner_dialog/qr_bar_code_scanner_dialog.dart';
 import 'package:uuid/uuid.dart';
 import '../../model/entry_model.dart';
+import '../../sevices/network_services/home_screen_services.dart';
 import '../../utils/colors.dart';
 import '../../utils/common_values.dart';
 import '../../utils/constants.dart';
@@ -41,12 +40,7 @@ class EntryScreen extends StatefulWidget {
 
 class _EntryScreenState extends State<EntryScreen> {
   final _formKey = GlobalKey<FormState>();
-  final StringBuffer _ownerMobileNumber = StringBuffer();
-  final StringBuffer _ownerName = StringBuffer();
-  final StringBuffer _driverMobileNumber = StringBuffer();
   final StringBuffer _idNumber = StringBuffer();
-
-  // final ScrollController _scrollController = ScrollController();
   final FocusNode _idFocusNode = FocusNode();
   final FocusNode _ownerNameFocusNode = FocusNode();
   final FocusNode _ownerNumberFocusNode = FocusNode();
@@ -60,13 +54,17 @@ class _EntryScreenState extends State<EntryScreen> {
   String dropdownValue = list.first;
   String dropdownDriverValue = driverList.first;
   bool carSelected = true;
-  List<bool> vehicleSelectedStatus = [true,false,false,false,false];
-  List<XFile>? _mediaFileList;
+  // List<bool> vehicleSelectedStatus = [true,false,false,false,false];
+  // todo
+  String _vehicleType = vehicleTypeBike;
+  // List<XFile>? _mediaFileList;
   bool isLoading = false;
   bool _touchStatus = false;
+  List<Map<String,String>>? _topEntryValue;
 
   @override
   void initState() {
+    entryExitStatus = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         _idFocusNode.requestFocus();
@@ -93,41 +91,52 @@ class _EntryScreenState extends State<EntryScreen> {
 
   Future<bool> _addNewVehicle() async {
     var dateTime = DateTime.now();
-    String img64 = '';
-    if (_mediaFileList != null) {
-      final bytes = File(_mediaFileList![0].path).readAsBytesSync();
-      img64 = base64Encode(bytes);
-    }
-    print('dateTime = $dateTime vehicle index = ${vehicleSelectedStatus.asMap()
-        .entries
-        .where((entry) => entry.value)
-        .map((entry) => entry.key).first + 1}');
+    // String img64 = '';
+    // if (_mediaFileList != null) {
+    //   final bytes = File(_mediaFileList![0].path).readAsBytesSync();
+    //   img64 = base64Encode(bytes);
+    // }
+    // print('dateTime = $dateTime vehicle index = ${vehicleSelectedStatus.asMap()
+    //     .entries
+    //     .where((entry) => entry.value)
+    //     .map((entry) => entry.key).first + 1}');
     try {
-      await saveEntryVehicle(
-        registerModel: EntryModel(
-            // transid: 1,
-            uniqueId: const Uuid().v4(),
-            vehicleNo: _idNumber.toString(),
-            vehicleType: '${vehicleSelectedStatus.asMap()
-                .entries
-                .where((entry) => entry.value)
-                .map((entry) => entry.key).first + 1}',
-            barcode: "",
-            date: '$dateTime',
-            intime: '$dateTime',
-            createdate: '$dateTime',
-            status: "A",
-            booth: "2",
-            userid: "1",
-            amount: 0,
-            design: "",
-            userName: ""),
+      await checkLoginStatus().then((logStatus)async{
+        print('logStatus = $logStatus');
+        if(logStatus!=null) {
+          print('12345');
+          if (logStatus) {
+            print('hhhhhh');
+            await saveEntryVehicle(registerModel: EntryModel(
+              // transid: 1,
+                uniqueId: const Uuid().v4(),
+                vehicleNo: _idNumber.toString(),
+                vehicleType: _vehicleType,
+                // vehicleType: '${vehicleSelectedStatus.asMap().entries.where((entry) => entry.value).map((entry) => entry.key).first + 1}',
+                barcode: "",
+                date: '$dateTime',
+                intime: '$dateTime',
+                createdate: '$dateTime',
+                status: "A",
+                booth: "2",
+                userid: userIDValue,
+                amount: 0,
+                design: "",
+                userName: ""));
+            _formKey.currentState?.reset();
+            return true;
+          }else{
+            Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) => const LoginScreen()), (Route<dynamic> route) => false);
+          }
+        }else{
+          showErrorAlertDialog(context: context, message: 'Something went wrong try again later');
+        }
+      }
       );
-      _formKey.currentState?.reset();
     } catch (e) {
       print('_saveUserData Error Occurred = $e');
     }
-    return true;
+    return false;
   }
   // openQRCodeScanner(BuildContext context) async {
   //   final additionalParameters = BarcodeAdditionalParameters(
@@ -269,86 +278,61 @@ class _EntryScreenState extends State<EntryScreen> {
                           ],
                         ),
                       ),
+                      // todo
                       Padding(
                         padding: const EdgeInsets.only(top: 10.0),
                         child: Row(
                           children: [
-                            BikeCarSelectionWidget(
-                                title: 'Car',
-                                onTap: () {
-                                  chooseVehicle(index: 0);
-                                },
-                                selectedStatus: vehicleSelectedStatus[0], iconData: Icons.directions_car),
-                            const SizedBox(width: 15),
+                            // BikeCarSelectionWidget(
+                            //     title: 'Car',
+                            //     onTap: () {
+                            //       _vehicleType = vehicleTypeCar;
+                            //       setState(() {});
+                            //     },
+                            //     selectedStatus: _vehicleType == vehicleTypeCar, iconData: Icons.directions_car),
+                            //      selectedStatus: vehicleSelectedStatus[0], iconData: Icons.directions_car),
+                            // const SizedBox(width: 15),
                             BikeCarSelectionWidget(
                                 title: 'Bike',
                                 onTap: () {
-                                  chooseVehicle(index: 1);
+                                  _vehicleType = vehicleTypeBike;
+                                  setState(() {});
                                 },
-                                selectedStatus: vehicleSelectedStatus[1], iconData: Icons.directions_bike)
+                                selectedStatus: _vehicleType == vehicleTypeBike, iconData: Icons.directions_bike)
                           ],
                         ),
                       ),
-                      Padding(
-                        padding: const EdgeInsets.only(top: 10.0),
-                        child: Row(
-                          children: [
-                            BikeCarSelectionWidget(
-                                title: 'Staff Vehicle',
-                                onTap: () {
-                                  chooseVehicle(index: 2);
-                                },
-                                selectedStatus: vehicleSelectedStatus[2], iconData: FontAwesomeIcons.busSimple),
-                            const SizedBox(width: 15),
-                            BikeCarSelectionWidget(
-                                title: 'Dialysis',
-                                onTap: () {
-                                  chooseVehicle(index: 3);
-                                },
-                                selectedStatus: vehicleSelectedStatus[3], iconData: Icons.directions_railway_outlined)
-                          ],
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(top: 10.0),
-                        child: Row(
-                          children: [
-                            BikeCarSelectionWidget(
-                                title: 'IN Patient',
-                                onTap: () {
-                                  chooseVehicle(index: 4);
-                                },
-                                selectedStatus: vehicleSelectedStatus[4], iconData: FontAwesomeIcons.truckMedical),
-                            
-                          ],
-                        ),
-                      ),
-                      // const Text('Choose Location',
-                      //     style: TextStyle(fontSize: 16)),
-                      // Container(
-                      //   padding: const EdgeInsets.symmetric(horizontal: 20),
-                      //   decoration: BoxDecoration(
-                      //       color: Colors.white,
-                      //       borderRadius: const BorderRadius.all(Radius.circular(8)),
-                      //       border: Border.all(color: appThemeColor)
+                      // Padding(
+                      //   padding: const EdgeInsets.only(top: 10.0),
+                      //   child: Row(
+                      //     children: [
+                      //       BikeCarSelectionWidget(
+                      //           title: 'Staff Vehicle',
+                      //           onTap: () {
+                      //             chooseVehicle(index: 2);
+                      //           },
+                      //           selectedStatus: vehicleSelectedStatus[2], iconData: FontAwesomeIcons.busSimple),
+                      //       const SizedBox(width: 15),
+                      //       BikeCarSelectionWidget(
+                      //           title: 'Dialysis',
+                      //           onTap: () {
+                      //             chooseVehicle(index: 3);
+                      //           },
+                      //           selectedStatus: vehicleSelectedStatus[3], iconData: Icons.directions_railway_outlined)
+                      //     ],
                       //   ),
-                      //   child: Center(
-                      //     child: DropdownButtonHideUnderline(
-                      //       child: DropdownButton(
-                      //         // iconEnabledColor: Colors.white,
-                      //         isExpanded: true,
-                      //         // hint: const Text('Select Waiter'),
-                      //         value: dropdownValue,
-                      //         items: list.map<DropdownMenuItem<String>>((String value) {
-                      //           return DropdownMenuItem<String>(value: value, child: Text(value,));
-                      //         }).toList(),
-                      //         onChanged: (String? value) {
-                      //           setState(() {
-                      //             dropdownValue = value!;
-                      //           });
-                      //         },
-                      //       ),
-                      //     ),
+                      // ),
+                      // Padding(
+                      //   padding: const EdgeInsets.only(top: 10.0),
+                      //   child: Row(
+                      //     children: [
+                      //       BikeCarSelectionWidget(
+                      //           title: 'IN Patient',
+                      //           onTap: () {
+                      //             chooseVehicle(index: 4);
+                      //           },
+                      //           selectedStatus: vehicleSelectedStatus[4], iconData: FontAwesomeIcons.truckMedical),
+                      //     ],
                       //   ),
                       // ),
                       const Spacer(),
@@ -361,21 +345,11 @@ class _EntryScreenState extends State<EntryScreen> {
                                 setState(() => _isLoading = true);
                                 _addNewVehicle().then((value) {
                                   if (value) {
-                                    // ScaffoldMessenger.of(context)
-                                    //     .showSnackBar(SnackBar(
-                                    //   backgroundColor: appThemeColor,
-                                    //   content: const Text(
-                                    //     'Saved Successfully!',
-                                    //     style: TextStyle(color: Colors.white),
-                                    //   ),
-                                    // ));
                                     autoDeleteAlertDialog(
                                         context: context,
                                         message: 'Added Successfully!');
                                     _clearData();
-                                    // Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>const HomeMainScreen()));
                                   }
-                                  // _formKey.currentState?.reset();
                                 });
                               }
                             },
@@ -412,18 +386,18 @@ class _EntryScreenState extends State<EntryScreen> {
     );
   }
 
-  void chooseVehicle({required int index}) {
-    for(int i = 0;i<vehicleSelectedStatus.length;i++)
-      {
-        if(i==index)
-          {
-            vehicleSelectedStatus[i] = true;
-          }else{
-          vehicleSelectedStatus[i] = false;
-        }
-      }
-    setState(() {});
-  }
+  // void chooseVehicle({required int index}) {
+  //   for(int i = 0;i<vehicleSelectedStatus.length;i++)
+  //     {
+  //       if(i==index)
+  //         {
+  //           vehicleSelectedStatus[i] = true;
+  //         }else{
+  //         vehicleSelectedStatus[i] = false;
+  //       }
+  //     }
+  //   setState(() {});
+  // }
 
   _clearData() {
     _isLoading = false;
@@ -485,25 +459,18 @@ class BikeCarSelectionWidget extends StatelessWidget {
       child: GestureDetector(
         onTap: onTap,
         child: Container(
-            padding: const EdgeInsets.all(5),
+            padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
                 color: selectedStatus ? appThemeColor : Colors.white,
                 borderRadius: const BorderRadius.all(Radius.circular(8))),
             child: Column(
               children: [
-                Icon(iconData, color: selectedStatus ? Colors.white : appThemeColor, size: 30,),
-                // Icon(
-                //   title == 'Bike'
-                //       ? Icons.directions_bike
-                //       : Icons.directions_car,
-                //   color: selectedStatus ? Colors.white : appThemeColor,
-                //   size: 30,
-                // ),
+                Icon(iconData, color: selectedStatus ? Colors.white : appThemeColor, size: 32),
                 const SizedBox(height: 5),
                 Text(title,
                     style: TextStyle(
                         color: selectedStatus ? Colors.white : appThemeColor,
-                        fontSize: 18,
+                        fontSize: 20,
                         fontWeight: FontWeight.w600)),
               ],
             )),

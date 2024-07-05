@@ -46,7 +46,7 @@ class ProfileScreenFieldWidget extends StatelessWidget {
               maxLength: numberTextLength,
               controller: textEditingController,
               // keyboardType: textInputType ?? TextInputType.text,
-              keyboardType: touchStatus ? TextInputType.text : TextInputType.none,
+              keyboardType: touchStatus ? TextInputType.number : TextInputType.none,
               decoration: profileTextFieldStyles(label: ''),
               // initialValue: fieldValue,
               focusNode: focusNode,

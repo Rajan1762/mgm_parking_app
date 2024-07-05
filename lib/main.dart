@@ -8,6 +8,7 @@ import 'package:mgm_parking_app/screens/enrty_screens/entry_screen.dart';
 import 'package:mgm_parking_app/screens/home_screens/home_main_screen.dart';
 import 'package:mgm_parking_app/screens/offline_screen.dart';
 import 'package:mgm_parking_app/screens/profile_screens/login_screen.dart';
+import 'package:mgm_parking_app/screens/profile_screens/shif_open_screen.dart';
 import 'package:mgm_parking_app/screens/scan_dummy.dart';
 import 'package:mgm_parking_app/sevices/provider_services/date_time_provider.dart';
 import 'package:mgm_parking_app/sevices/provider_services/floorTableProviderService.dart';
@@ -62,6 +63,7 @@ Future<void> _getSharedPrefValue() async {
   shiftIDValue = prefs.getString(shiftIdString) ?? '';
   userIDValue = prefs.getString(userIdString) ?? '';
   logInTimeVal = prefs.getString(logInTimeString) ?? '';
+  openingAmountValue = prefs.getString(openingAmountString) ?? '';
   print('shiftIDValue = $shiftIDValue, userIDValue = $userIDValue, logInTimeVal = $logInTimeVal');
 }
 
@@ -90,6 +92,7 @@ class MyApp extends StatelessWidget {
           colorScheme: ColorScheme.fromSeed(seedColor: appThemeColor),
           useMaterial3: true,
         ),
+        // home: const ShiftOpenScreen()
         home: shiftIDValue == '' ? const LoginScreen() : const HomeMainScreen()
       ),
     );

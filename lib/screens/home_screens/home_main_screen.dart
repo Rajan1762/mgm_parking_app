@@ -2,7 +2,6 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import 'package:mgm_parking_app/model/exit_screen_model/exit_screen_response_model.dart';
 import 'package:mgm_parking_app/model/profile_models/logout_model.dart';
 import 'package:mgm_parking_app/model/profile_models/logout_response_model.dart';
 import 'package:mgm_parking_app/screens/enrty_screens/entry_screen.dart';
@@ -14,11 +13,13 @@ import 'package:mgm_parking_app/utils/custom_widgets/notification_widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sunmi_printer_plus/column_maker.dart';
 import 'package:sunmi_printer_plus/enums.dart';
-import '../../model/profile_models/login_response_model.dart';
+import '../../sevices/network_services/exit_screen_services.dart';
 import '../../sevices/print_services/sunmi.dart';
 import '../../utils/colors.dart';
 import '../../utils/common_values.dart';
 import '../offline_screen.dart';
+import '../profile_screens/top_entries_page.dart';
+import 'full_screen_loading.dart';
 
 class HomeMainScreen extends StatefulWidget {
   const HomeMainScreen({super.key});
@@ -29,6 +30,7 @@ class HomeMainScreen extends StatefulWidget {
 
 class _HomeMainScreenState extends State<HomeMainScreen> {
   int bottomBarIndex = 0;
+  bool _isLoading = false;
 
   _printReceipt(LogOutResponseModel e) {
     List<ColumnMaker> cList = [];
@@ -83,8 +85,7 @@ class _HomeMainScreenState extends State<HomeMainScreen> {
   Future<bool> _logOutUser(BuildContext context) async {
     try {
       LogOutResponseModel? logOutResponseModel = await logOutUser(
-          logoutModel:
-              LogOutModel(shiftname: shiftIDValue, username: userIDValue));
+          logoutModel: LogOutModel(shiftname: shiftIDValue, username: userIDValue));
       if (logOutResponseModel == null && context.mounted) {
         showErrorAlertDialog(context: context, message: 'Something Went Wrong');
         return false;
@@ -132,12 +133,33 @@ class _HomeMainScreenState extends State<HomeMainScreen> {
     return SafeArea(
         child: Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('BOT PARKING',
-                style: GoogleFonts.oswald(
-                  textStyle: TextStyle(color: appThemeColor),
+            Expanded(
+              child: Text('BOT PARKING - ($userIDValue)',
+                  style: GoogleFonts.oswald(
+                    textStyle: TextStyle(color: appThemeColor),
+                  )),
+            ),
+            GestureDetector(
+                onTap: ()async{
+                  setState(() =>_isLoading=true);
+                  if(entryExitStatus)
+                    {
+                      topEntryValue = await fetchTop10EntriesData();
+                    }else{
+                    topExitValue = await fetchTop10ExitData();
+                  }
+                  setState(() =>_isLoading=false);
+                  Navigator.of(context).push(MaterialPageRoute(builder: (context){
+                    return TopEntriesPage(entryStatus: entryExitStatus);
+                  }));
+                },
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                  child: Icon(Icons.remove_red_eye_outlined,size: 30,color: appThemeColor),
                 )),
             GestureDetector(
                 onTap: () {
@@ -158,12 +180,15 @@ class _HomeMainScreenState extends State<HomeMainScreen> {
                         }
                       });
                 },
-                child: Icon(Icons.exit_to_app_outlined,
-                    color: Colors.grey.shade600))
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 5),
+                  child: Icon(Icons.exit_to_app_outlined,size: 30,
+                      color: Colors.grey.shade700),
+                ))
           ],
         ),
       ),
-      body: bottomBarIndex == 0 ? const EntryScreen() : const ExitScreen(),
+      body: _isLoading ? FullScreenLoading() : bottomBarIndex == 0 ? const EntryScreen() : const ExitScreen() ,
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(

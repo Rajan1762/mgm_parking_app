@@ -1,4 +1,5 @@
 import 'package:flutter/services.dart';
+import 'package:mgm_parking_app/utils/constants.dart';
 import 'package:sunmi_printer_plus/column_maker.dart';
 import 'package:sunmi_printer_plus/enums.dart';
 import 'package:sunmi_printer_plus/sunmi_printer_plus.dart';
@@ -106,6 +107,10 @@ class Sunmi {
           bold: false,
           align: SunmiPrintAlign.CENTER,
         ));
+    await SunmiPrinter.printText('--------------------------------');
+    await SunmiPrinter.printText('Opening Balance : $openingAmountValue',style: SunmiStyle(
+      align: SunmiPrintAlign.CENTER,
+    ));
     await SunmiPrinter.printText('--------------------------------');
     await SunmiPrinter.printText('Payment Type           Amount',
         style: SunmiStyle(

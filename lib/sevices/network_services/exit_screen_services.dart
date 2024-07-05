@@ -7,6 +7,19 @@ import 'package:http/http.dart' as http;
 
 import '../../model/exit_screen_model/exit_screen_response_model.dart';
 
+Future<List<Map<String,String>>?> fetchTop10ExitData() async
+{
+  print('top10ExitScreenEntriesURL = $top10ExitScreenEntriesURL');
+  http.Response response = await http.get(Uri.parse(top10ExitScreenEntriesURL));
+  print('fetchTop10ExitData response = ${response.body}');
+  if(response.statusCode == 200 && response.body.isNotEmpty)
+  {
+    final List<dynamic> jsonData = jsonDecode(response.body);
+    return jsonData.map((item) => Map<String, String>.from(item)).toList();
+  }
+  return null;
+}
+
 Future<ExitResponseModel?> saveExitVehicle({required ExitSaveModel exitSaveModel}) async{
   print('saveExitVehicle = $baseUrl$exitSaveVehicleUrl');
   print('json.encode(exitSaveModel.toJson() = ${json.encode(exitSaveModel.toJson())}');

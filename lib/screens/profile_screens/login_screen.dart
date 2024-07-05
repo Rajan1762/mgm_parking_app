@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:mgm_parking_app/model/profile_models/login_model.dart';
 import 'package:mgm_parking_app/model/profile_models/login_response_model.dart';
+import 'package:mgm_parking_app/screens/profile_screens/shif_open_screen.dart';
 import 'package:mgm_parking_app/utils/constants.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../model/errorResponseModel.dart';
@@ -28,40 +29,43 @@ class _LoginScreenState extends State<LoginScreen> {
   List<String> userNameList = ['Select User'];
   String _dropdownValue = 'Select User';
 
-  _getUserList() async
-  {
-    try{
+  _getUserList() async {
+    try {
       userList = await loginUserList();
-      userList?.forEach((element){
+      userList?.forEach((element) {
         // userNameList.clear();
-        userNameList.add(element.username??"");
+        userNameList.add(element.username ?? "");
       });
       for (var a in userNameList) {
         print('a = $a');
       }
       // setState(()=>_isLoading = false);
-    }catch(e){
+    } catch (e) {
       print('Error Occurred e = $e');
     }
-    setState(()=>_isLoading = false);
+    setState(() => _isLoading = false);
   }
 
-  Future<ErrorResponseModel> _loginUser({required String userName, required String password}) async {
+  Future<ErrorResponseModel> _loginUser(
+      {required String userName, required String password}) async {
     LoginResponseModel? obj;
     String? message;
     try {
-      obj = await loginUser(loginModel: LoginModel(
+      obj = await loginUser(
+          loginModel: LoginModel(
         username: userName,
         pwd: password,
-          boothId: '',
+        boothId: '',
         shiftname: '',
+        //shit id
         sdate: '',
         sstatus: '',
         openingamount: '',
+        //entered value
         csdate: '',
         closingamount: '',
         fuser: '',
-          shiftStatus: true,
+        shiftStatus: true,
       ));
       // obj = await loginUser(userName: userName, password: password);
       print('obj = $obj');
@@ -101,8 +105,10 @@ class _LoginScreenState extends State<LoginScreen> {
           Center(
             child: SingleChildScrollView(
               child: Container(
-                margin: const EdgeInsets.symmetric(horizontal: 15, vertical: 80),
-                padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 20),
+                margin:
+                    const EdgeInsets.symmetric(horizontal: 15, vertical: 80),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 15, vertical: 20),
                 decoration: const BoxDecoration(
                   color: Colors.black45,
                   borderRadius: BorderRadius.all(Radius.circular(15)),
@@ -119,16 +125,18 @@ class _LoginScreenState extends State<LoginScreen> {
                             fontWeight: FontWeight.bold,
                             fontSize: 28,
                             letterSpacing: 1.5)),
-                    const SizedBox(height: 40,),
+                    const SizedBox(
+                      height: 40,
+                    ),
                     Column(
                       children: [
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 20),
                           decoration: BoxDecoration(
                               color: Colors.white,
-                              borderRadius: const BorderRadius.all(Radius.circular(8)),
-                              border: Border.all(color: appThemeColor)
-                          ),
+                              borderRadius:
+                                  const BorderRadius.all(Radius.circular(8)),
+                              border: Border.all(color: appThemeColor)),
                           child: Center(
                             child: DropdownButtonHideUnderline(
                               child: DropdownButton(
@@ -136,8 +144,14 @@ class _LoginScreenState extends State<LoginScreen> {
                                 isExpanded: true,
                                 // hint: const Text('Select Waiter'),
                                 value: _dropdownValue,
-                                items: userNameList.map<DropdownMenuItem<String>>((String value) {
-                                  return DropdownMenuItem<String>(value: value, child: Text(value,));
+                                items: userNameList
+                                    .map<DropdownMenuItem<String>>(
+                                        (String value) {
+                                  return DropdownMenuItem<String>(
+                                      value: value,
+                                      child: Text(
+                                        value,
+                                      ));
                                 }).toList(),
                                 onChanged: (String? value) {
                                   setState(() {
@@ -153,59 +167,85 @@ class _LoginScreenState extends State<LoginScreen> {
                         //     decoration: loginTextFieldDesign(true,(){})),
                         const SizedBox(height: 20),
                         TextField(
-                          controller: passwordController,
+                            controller: passwordController,
                             obscureText: _obscureTextStatus,
-                            decoration: loginTextFieldDesign(false,(){
+                            decoration: loginTextFieldDesign(false, () {
                               print('_obscureTextStatus = $_obscureTextStatus');
                               _obscureTextStatus = !_obscureTextStatus;
                               setState(() {});
                             }))
                       ],
                     ),
-                    const SizedBox(height: 30,),
+                    const SizedBox(
+                      height: 30,
+                    ),
                     ElevatedButton(
                         style: ButtonStyle(
-                          backgroundColor: WidgetStateProperty.all<Color>(appThemeColor),
-                          foregroundColor: WidgetStateProperty.all<Color>(Colors.black),
-                          padding: WidgetStateProperty.all<EdgeInsetsGeometry?>(const EdgeInsets.symmetric(vertical: 10)),
-                          shape: WidgetStateProperty.all<RoundedRectangleBorder>(
-                            RoundedRectangleBorder(borderRadius: BorderRadius.circular(5.0)),
+                          backgroundColor:
+                              WidgetStateProperty.all<Color>(appThemeColor),
+                          foregroundColor:
+                              WidgetStateProperty.all<Color>(Colors.black),
+                          padding: WidgetStateProperty.all<EdgeInsetsGeometry?>(
+                              const EdgeInsets.symmetric(vertical: 10)),
+                          shape:
+                              WidgetStateProperty.all<RoundedRectangleBorder>(
+                            RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(5.0)),
                           ),
                         ),
                         onPressed: () async {
-                          if(_dropdownValue != userNameList.first && passwordController.value.text.isNotEmpty)
-                            {
-                              setState(() => _isLoading=true);
-                              ErrorResponseModel response = await _loginUser(userName: _dropdownValue, password: passwordController.value.text);
-                              if (context.mounted) {
-                                setState(() => _isLoading=false);
-                                if (response.obj != null) {
-                                    if(!response.obj.status!)
-                                    {
-                                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                                        content: Text('UserName Or Password is Incorrect'),
-                                      ));
-                                    }else{
-                                      await _saveSharedPreferenceData();
-                                      if(context.mounted){
-                                        Navigator.of(context).pushReplacement(MaterialPageRoute(
-                                            builder: (context) => const HomeMainScreen()));
-                                      }
-                                    }
+                          if (_dropdownValue != userNameList.first &&
+                              passwordController.value.text.isNotEmpty) {
+                            setState(() => _isLoading = true);
+                            ErrorResponseModel response = await _loginUser(
+                                userName: _dropdownValue,
+                                password: passwordController.value.text);
+                            if (context.mounted) {
+                              setState(() => _isLoading = false);
+                              if (response.obj != null) {
+                                if (!response.obj.status!) {
+                                  ScaffoldMessenger.of(context)
+                                      .showSnackBar(const SnackBar(
+                                    content: Text(
+                                        'UserName Or Password is Incorrect'),
+                                  ));
                                 } else {
-                                  showErrorAlertDialog(context: context, message: response.errorMessage ?? '');
+                                  await _saveSharedPreferenceData();
+                                  if (context.mounted) {
+                                    if (response.obj.shiftOpen) {
+                                      Navigator.of(context).pushReplacement(
+                                          MaterialPageRoute(
+                                              builder: (context) =>
+                                                  const HomeMainScreen()));
+                                    } else {
+                                      Navigator.of(context).pushReplacement(
+                                          MaterialPageRoute(
+                                              builder: (context) =>
+                                                  const ShiftOpenScreen()));
+                                    }
+                                  }
+                                  // Navigator.of(context).pushReplacement(MaterialPageRoute(
+                                  //     builder: (context) => const HomeMainScreen()));
                                 }
+                              } else {
+                                showErrorAlertDialog(
+                                    context: context,
+                                    message: response.errorMessage ?? '');
                               }
-                            }else{
-                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                            }
+                          } else {
+                            ScaffoldMessenger.of(context)
+                                .showSnackBar(const SnackBar(
                               content: Text('Fill all fields to Login'),
                             ));
                           }
                         },
                         child: const Text(
                           'Log In',
-                          style: TextStyle(color: Colors.white,
-                              fontSize: 20, fontWeight: FontWeight.w600),
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w600),
                         ))
                   ],
                 ),
@@ -218,13 +258,16 @@ class _LoginScreenState extends State<LoginScreen> {
     ));
   }
 
-  InputDecoration loginTextFieldDesign(bool status,Function() onTap) {
+  InputDecoration loginTextFieldDesign(bool status, Function() onTap) {
     return InputDecoration(
       filled: true,
       fillColor: Colors.white,
       hintText: status ? 'User Name' : 'Password',
       isDense: true,
-      suffixIcon: GestureDetector(onTap: onTap,child: Icon(status ? Icons.person_outline : Icons.remove_red_eye_outlined)),
+      suffixIcon: GestureDetector(
+          onTap: onTap,
+          child: Icon(
+              status ? Icons.person_outline : Icons.remove_red_eye_outlined)),
       contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
       border: loginBorderDesign(),
       focusedBorder: loginBorderDesign(),

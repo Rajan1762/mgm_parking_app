@@ -8,6 +8,7 @@ class ExitSaveModel {
   String? duration;
   String? intime;
   String? payment;
+  String? amount;
   String? createdate;
   String? status;
   String? booth;
@@ -29,6 +30,7 @@ class ExitSaveModel {
         this.duration,
         this.intime,
         this.payment,
+        this.amount,
         this.createdate,
         this.status,
         this.booth,
@@ -50,6 +52,7 @@ class ExitSaveModel {
     duration = json['duration'];
     intime = json['intime'];
     payment = json['payment'];
+    amount = json['amount'];
     createdate = json['createdate'];
     status = json['status'];
     booth = json['booth'];
@@ -73,6 +76,7 @@ class ExitSaveModel {
     data['duration'] = this.duration;
     data['intime'] = this.intime;
     data['payment'] = this.payment;
+    data['amount'] = this.amount;
     data['createdate'] = this.createdate;
     data['status'] = this.status;
     data['booth'] = this.booth;

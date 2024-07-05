@@ -10,8 +10,10 @@ import 'package:sunmi_printer_plus/enums.dart';
 import 'package:uuid/uuid.dart';
 import '../../model/exit_screen_model/exit_screen_response_model.dart';
 import '../../sevices/network_services/exit_screen_services.dart';
+import '../../sevices/network_services/profile_services.dart';
 import '../../sevices/print_services/sunmi.dart';
 import '../../utils/common_functions.dart';
+import '../../utils/common_values.dart';
 import '../../utils/constants.dart';
 import '../../utils/custom_widgets/common_widget.dart';
 import '../../utils/custom_widgets/loading_widgets.dart';
@@ -19,6 +21,7 @@ import '../../utils/custom_widgets/profile_screen_widget.dart';
 import 'package:intl/intl.dart';
 
 import '../enrty_screens/entry_screen.dart';
+import '../profile_screens/login_screen.dart';
 
 class ExitScreen extends StatefulWidget {
   const ExitScreen({super.key});
@@ -45,42 +48,91 @@ class _ExitScreenState extends State<ExitScreen> {
   bool _touchStatus = false;
   final _qrBarCodeScannerDialogPlugin = QrBarCodeScannerDialog();
   ErrorResponseModel? errorResponseModel;
+  bool _saveBtVisibility = false;
+  bool _doublePrintStatus = false;
+  bool _dialysisChoosed = false;
   Map<String, bool> paymentModeMap = {
-    cashString: true,
-    cardString: false,
-    creditString: false,
-    upiString: false
+    cashString: false,
+    gPayCardString: false,
+    mgmPaymentModeString: false,
+    inPatientString: false
   };
 
-  choosePaymentMode(String paymentMode) {
-    paymentModeMap.forEach((key, value) {
-      if (key == paymentMode) {
-        paymentModeMap[key] = true;
+  choosePaymentMode(
+      {required String paymentMode, required BuildContext context}) async {
+    checkLoginStatus().then((logStatus) async {
+      if (logStatus != null) {
+        if (logStatus) {
+          if (entryModel == null) {
+            showMessageAlertDialog(
+                context: context, message: 'Failed. Invalid Vehicle Details');
+            return;
+          }
+          paymentModeMap.forEach((key, value) {
+            if (key == paymentMode) {
+              paymentModeMap[key] = true;
+            } else {
+              paymentModeMap[key] = false;
+            }
+          });
+          setState(() => _isLoading = true);
+          ExitResponseModel? e;
+          try {
+            e = await _saveExitVehicleData();
+          } catch (error) {
+            print('Error Occurred = $error');
+            if (context.mounted) {
+              showErrorAlertDialog(context: context, message: error.toString());
+            }
+          }
+          print('e.message = ${e?.message}');
+          if (context.mounted) {
+            if (e != null && e.message == 'Succesfully OutChecked!') {
+              autoDeleteAlertDialog(
+                  context: context, message: 'Saved Successfully!');
+            } else {
+              autoDeleteAlertDialog(
+                  context: context, message: 'Failed to Save Data');
+            }
+          }
+          _clearData();
+        } else {
+          Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(builder: (context) => const LoginScreen()),
+              (Route<dynamic> route) => false);
+        }
       } else {
-        paymentModeMap[key] = false;
+        showErrorAlertDialog(
+            context: context, message: 'Something went wrong try again later');
       }
     });
-    setState(() {});
   }
 
-  printSunmiReceipt(){
+  printSunmiReceipt() {
     print('userIDValue = $userIDValue');
     List<ColumnMaker> cList = [];
-    cList.add(alignColumn(text: 'UHF ID       : ${entryModel?.vehicleNo}',));
+    cList.add(alignColumn(
+      text: 'UHF ID       : ${entryModel?.vehicleNo}',
+    ));
     cList.add(alignColumn(text: 'Vehicle Type : ${entryModel?.vehicleType}'));
     cList.add(alignColumn(text: 'IN  : $entryDateTime'));
     cList.add(alignColumn(text: 'OUT : $exitDateTime'));
-    cList.add(alignColumn(text: 'Time Duration : $noOfDays : ${remainingHours.toString().padLeft(2, '0')} : ${minutes.toString().padLeft(2, '0')} : ${seconds.toString().padLeft(2, '0')}'));
+    cList.add(alignColumn(
+        text:
+            'Time Duration : $noOfDays : ${remainingHours.toString().padLeft(2, '0')} : ${minutes.toString().padLeft(2, '0')} : ${seconds.toString().padLeft(2, '0')}'));
     cList.add(alignColumn(text: 'Fare Rs : $rupeeSymbol$amount /-'));
-    cList.add(alignColumn(text: 'Payment Mode : ${paymentModeMap.entries.where((data) => data.value).map((data)=>data.key).first}'));
-    cList.add(alignColumn(text: '\n--------------------------------',));
+    cList.add(alignColumn(
+        text:
+            'Payment Mode : ${paymentModeMap.containsValue(true) ? paymentModeMap.entries.where((data) => data.value).map((data) => data.key).first : cashString}'));
+    cList.add(alignColumn(
+      text: '\n--------------------------------',
+    ));
     cList.add(alignColumn(text: 'Print Date : $exitDateTime\n\n\n'));
     Sunmi printer = Sunmi();
     printer.printReceipt(cl: cList, userName: userIDValue);
   }
 
-  ColumnMaker alignColumn({required String text, SunmiPrintAlign? align})
-  {
+  ColumnMaker alignColumn({required String text, SunmiPrintAlign? align}) {
     return ColumnMaker(
       text: text,
       width: 10,
@@ -91,11 +143,25 @@ class _ExitScreenState extends State<ExitScreen> {
   Future<ExitResponseModel?> _saveExitVehicleData() async {
     print('shiftIDValue = $shiftIDValue');
     var dateTime = DateTime.now();
-    String paymentMode = paymentModeMap.entries.where((data) => data.value).map((data)=>data.key).first;
-    ExitResponseModel? exitResponseModel =  await saveExitVehicle(
+    String remarks = 'Other';
+    String paymentMode = 'Other';
+    if (paymentModeMap.containsValue(true)) {
+      remarks = paymentModeMap.entries
+          .where((data) => data.value)
+          .map((data) => data.key)
+          .first;
+      paymentMode =
+          (remarks == mgmPaymentModeString || remarks == inPatientString)
+              ? creditString
+              : remarks;
+    }
+    print(
+        'paymentMode = $paymentMode, mgmPaymentModeString = $mgmPaymentModeString, inPatientString = $inPatientString');
+    ExitResponseModel? exitResponseModel = await saveExitVehicle(
         exitSaveModel: ExitSaveModel(
       uniqueId: const Uuid().v4(),
-      vehicleType: entryModel?.vehicleType,
+      vehicleType:
+          _dialysisChoosed ? vehicleTypeDialysis : entryModel?.vehicleType,
       vehicleNo: _idNumber.toString(),
       date: DateFormat("yyyy-MM-dd HH:mm:ss").format(dateTime),
       //formatDate(dateTime),
@@ -103,23 +169,32 @@ class _ExitScreenState extends State<ExitScreen> {
       //formatTime(dateTime),
       barcode: '',
       duration:
-      '${hours.toString().padLeft(2, '0')} : ${minutes.toString().padLeft(2, '0')} : ${seconds.toString().padLeft(2, '0')}',
+          '${hours.toString().padLeft(2, '0')} : ${minutes.toString().padLeft(2, '0')} : ${seconds.toString().padLeft(2, '0')}',
       intime: DateFormat("yyyy-MM-dd HH:mm:ss")
-          .format(DateTime.parse( entryModel!.date!)),
+          .format(DateTime.parse(entryModel!.date!)),
       payment: '$amount',
+      amount: '$amount',
       createdate: entryModel?.date,
       status: 'D',
       booth: '2',
-      userid: '1',
+      userid: userIDValue,
       paymode: paymentMode,
-      remarks: '',
+      remarks: remarks,
       shiftid: shiftIDValue,
       userName: '',
       refNo: '',
       printDate: DateFormat("yyyy-MM-dd'T'HH:mm:ss").format(dateTime),
     ));
-    if (paymentMode != creditString && amount != 0) {
-      await printSunmiReceipt();
+    if (exitResponseModel != null) {
+      print('object');
+      if ((remarks != mgmPaymentModeString) &&
+          (remarks != inPatientString) &&
+          (amount != 0)) {
+        int printCount = (_doublePrintStatus) ? 2 : 1;
+        for (int i = 0; i < printCount; i++) {
+          await printSunmiReceipt();
+        }
+      }
     }
     return exitResponseModel;
   }
@@ -132,13 +207,13 @@ class _ExitScreenState extends State<ExitScreen> {
         return errorResponseModel;
       }
       entryModel = errorResponseModel?.obj;
-      calculateAmount(entryModel!);
+      calculateAmount(entryModel?.vehicleType);
       textFieldVisibility = false;
     }
     return errorResponseModel;
   }
 
-  calculateAmount(EntryModel em) {
+  calculateAmount(String? vehicleType) {
     var dateTime = DateTime.now();
     DateTime entryDate = DateTime.parse("${entryModel?.date}");
     entryDateTime = "${formatDate(entryDate)} ${formatTime(entryDate)}";
@@ -150,7 +225,7 @@ class _ExitScreenState extends State<ExitScreen> {
     hours = difference.inHours;
     minutes = difference.inMinutes % 60;
     seconds = difference.inSeconds % 60;
-    VehicleValueModel vm = setVehicleValues(vehicleType: em.vehicleType ?? '');
+    VehicleValueModel vm = setVehicleValues(vehicleType: vehicleType ?? '');
     noOfDays = hours ~/ 24;
     remainingHours = (hours % 24).toInt();
     print(
@@ -164,9 +239,15 @@ class _ExitScreenState extends State<ExitScreen> {
         amount = 0;
         return;
       }
-      amount = remainingHours < 2 || (remainingHours == 2 && seconds == 0) ? vm.baseAmount : vm.baseAmount + ((remainingHours - 2) * vm.extraAmount) + (((minutes != 0) || (seconds != 0)) ? vm.extraAmount : 0);
+      amount = remainingHours < 2 || (remainingHours == 2 && seconds == 0)
+          ? vm.baseAmount
+          : vm.baseAmount +
+              ((remainingHours - 2) * vm.extraAmount) +
+              (((minutes != 0) || (seconds != 0)) ? vm.extraAmount : 0);
     } else {
-      amount = (noOfDays * vm.perDayAmount) + (remainingHours * vm.extraAmount) + (((minutes != 0) || (seconds != 0)) ? vm.extraAmount : 0);
+      amount = (noOfDays * vm.perDayAmount) +
+          (remainingHours * vm.extraAmount) +
+          (((minutes != 0) || (seconds != 0)) ? vm.extraAmount : 0);
     }
     print('amount = $amount');
   }
@@ -180,6 +261,7 @@ class _ExitScreenState extends State<ExitScreen> {
 
   @override
   void initState() {
+    entryExitStatus = false;
     _idFocusNode.requestFocus();
     super.initState();
   }
@@ -196,7 +278,8 @@ class _ExitScreenState extends State<ExitScreen> {
         child: Stack(
           children: [
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10.0,vertical: 5),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 10.0, vertical: 5),
               child: Column(
                 children: [
                   Expanded(
@@ -210,52 +293,59 @@ class _ExitScreenState extends State<ExitScreen> {
                               children: [
                                 Expanded(
                                   child: ProfileScreenFieldWidget(
-                                      fieldName: kIdString,
-                                      focusNode: _idFocusNode,
-                                      textEditingController: _idController,
-                                      textInputType: TextInputType.number,
-                                      validate: (value) {
-                                        if (value == null || value.isEmpty) {
-                                          _idFocusNode.requestFocus();
-                                          return "Required field cannot be empty";
-                                        }
-                                        return null;
-                                      },
-                                      onChangValue: (v) {
-                                        _idNumber.clear();
-                                        _idNumber.write(v);
-                                      }, touchStatus: _touchStatus, onTap: () {
-                                    if(!_touchStatus)
-                                    {
-                                      setState(() {
-                                        print('_touchStatus = $_touchStatus');
-                                        _touchStatus = true;
-                                        _idFocusNode.unfocus();
-                                      });
-                                      Future.delayed(const Duration(milliseconds: 500),(){
+                                    fieldName: kIdString,
+                                    focusNode: _idFocusNode,
+                                    textEditingController: _idController,
+                                    textInputType: TextInputType.number,
+                                    validate: (value) {
+                                      // if (value == null || value.isEmpty) {
+                                      //   _idFocusNode.requestFocus();
+                                      //   return "Required field cannot be empty";
+                                      // }
+                                      return null;
+                                    },
+                                    onChangValue: (v) {
+                                      _idNumber.clear();
+                                      _idNumber.write(v);
+                                    },
+                                    touchStatus: _touchStatus,
+                                    onTap: () {
+                                      if (!_touchStatus) {
                                         setState(() {
-                                          _idFocusNode.requestFocus();
+                                          print('_touchStatus = $_touchStatus');
+                                          _touchStatus = true;
+                                          _idFocusNode.unfocus();
                                         });
-                                      });
-                                    }
-                                  },),
+                                        Future.delayed(
+                                            const Duration(milliseconds: 500),
+                                            () {
+                                          setState(() {
+                                            _idFocusNode.requestFocus();
+                                          });
+                                        });
+                                      }
+                                    },
+                                  ),
                                 ),
                                 const SizedBox(width: 15),
-                                QrCodeScannerWidget(onTap: () {
-                                  _qrBarCodeScannerDialogPlugin.getScannedQrBarCode(
-                                      context: context,
-                                      onCode: (code) {
-                                        setState(() {
-                                          _idController.text = code??'';
-                                          _idNumber.clear();
-                                          _idNumber.write(code);
-                                        });
-                                      });
-                                },)
+                                QrCodeScannerWidget(
+                                  onTap: () {
+                                    _qrBarCodeScannerDialogPlugin
+                                        .getScannedQrBarCode(
+                                            context: context,
+                                            onCode: (code) {
+                                              setState(() {
+                                                _idController.text = code ?? '';
+                                                _idNumber.clear();
+                                                _idNumber.write(code);
+                                              });
+                                            });
+                                  },
+                                )
                               ],
                             ),
                           ),
-                          SizedBox(height: textFieldVisibility ? 20 : 5),
+                          SizedBox(height: textFieldVisibility ? 15 : 5),
                           Row(
                             children: [
                               SaveClearWidget(
@@ -263,34 +353,51 @@ class _ExitScreenState extends State<ExitScreen> {
                                   onPressed: () async {
                                     if (_idNumber.toString().isNotEmpty) {
                                       setState(() => _isLoading = true);
-                                      await _checkVehicleDetails();
-                                      setState(() => _isLoading = false);
-                                      if (context.mounted) {
-                                        if (errorResponseModel != null) {
-                                          if (errorResponseModel
-                                                  ?.errorMessage !=
-                                              null) {
-                                            showErrorAlertDialog(
-                                                context: context,
-                                                message: errorResponseModel!
-                                                    .errorMessage!);
-                                            // showToast(errorResponseModel!.errorMessage!);
-                                            // ScaffoldMessenger.of(context)
-                                            //     .showSnackBar(SnackBar(
-                                            //   content: Text(errorResponseModel!.errorMessage!),
-                                            // ));
+                                      checkLoginStatus()
+                                          .then((logStatus) async {
+                                        if (logStatus != null) {
+                                          if (logStatus) {
+                                            await _checkVehicleDetails();
+                                            _saveBtVisibility = amount == 0;
+                                            setState(() => _isLoading = false);
+                                            if (context.mounted) {
+                                              if (errorResponseModel != null) {
+                                                if (errorResponseModel
+                                                        ?.errorMessage !=
+                                                    null) {
+                                                  showErrorAlertDialog(
+                                                      context: context,
+                                                      message:
+                                                          errorResponseModel!
+                                                              .errorMessage!);
+                                                  // showToast(errorResponseModel!.errorMessage!);
+                                                  // ScaffoldMessenger.of(context)
+                                                  //     .showSnackBar(SnackBar(
+                                                  //   content: Text(errorResponseModel!.errorMessage!),
+                                                  // ));
+                                                }
+                                              }
+                                            }
+                                          } else {
+                                            Navigator.of(context)
+                                                .pushAndRemoveUntil(
+                                                    MaterialPageRoute(
+                                                        builder: (context) =>
+                                                            const LoginScreen()),
+                                                    (Route<dynamic> route) =>
+                                                        false);
                                           }
+                                        } else {
+                                          showErrorAlertDialog(
+                                              context: context,
+                                              message:
+                                                  'Something went wrong try again later');
                                         }
-                                      }
+                                      });
                                     } else {
                                       autoDeleteAlertDialog(
                                           context: context,
                                           message: 'Scan ID to Check');
-                                      // showToast('Scan ID to Check');
-                                      // ScaffoldMessenger.of(context)
-                                      //     .showSnackBar(const SnackBar(
-                                      //   content: Text('Scan ID to Check'),
-                                      // ));
                                     }
                                   }),
                               GestureDetector(
@@ -314,7 +421,7 @@ class _ExitScreenState extends State<ExitScreen> {
                             ],
                           ),
                           Container(
-                            margin: const EdgeInsets.only(top: 15,bottom: 5),
+                            margin: const EdgeInsets.only(top: 15, bottom: 5),
                             decoration: BoxDecoration(
                                 color: Colors.white,
                                 borderRadius:
@@ -336,7 +443,11 @@ class _ExitScreenState extends State<ExitScreen> {
                                   ExitFieldWidgets(
                                       title: 'Vehicle Type',
                                       value: entryModel != null
-                                          ? vehicleTypeList[(int.parse(entryModel?.vehicleType??'1'))-1] : ''),
+                                          ? _dialysisChoosed
+                                              ? vehicleTypeDialysis
+                                              : entryModel?.vehicleType ?? ''
+                                          : ''),
+                                  // value: entryModel != null ? vehicleTypeList[(int.parse(entryModel?.vehicleType??'1'))-1] : ''),
                                   // ExitFieldWidgets(
                                   //     title: 'Status',
                                   //     value: entryModel?.status ?? ''),
@@ -397,97 +508,190 @@ class _ExitScreenState extends State<ExitScreen> {
                               ),
                             ),
                           ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 5,vertical: 5),
-                            margin: const EdgeInsets.symmetric(vertical: 5),
-                            decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius:
-                                const BorderRadius.all(Radius.circular(5)),
-                                border: Border.all(color: appThemeColor)),
-                            child: Column(
-                              // crossAxisAlignment: CrossAxisAlignment.center,
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 10.0),
+                            child: Row(
                               children: [
-                                Text('Payment Mode',
-                                    style:
-                                    TextStyle(fontSize: 18, color: appThemeColor,fontWeight: FontWeight.w600)),
+                                Expanded(
+                                  child: Row(
+                                    children: [
+                                      DialysisNormalWidget(
+                                        title: vehicleTypeDialysis,
+                                        onTap: () {
+                                          if (entryModel != null) {
+                                            calculateAmount(
+                                                vehicleTypeDialysis);
+                                            setState(() {});
+                                            _dialysisChoosed = true;
+                                          }
+                                        },
+                                      ),
+                                      const SizedBox(width: 8),
+                                      DialysisNormalWidget(
+                                        title: 'Normal',
+                                        onTap: () {
+                                          if (entryModel != null) {
+                                            calculateAmount(
+                                                entryModel?.vehicleType);
+                                            setState(() {});
+                                            _dialysisChoosed = false;
+                                          }
+                                        },
+                                      )
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(width: 5),
                                 Row(
                                   children: [
-                                    PaymentModeWidget(
-                                      iconData: Icons.currency_rupee,
-                                      title: cashString,
-                                      selectedStatus: paymentModeMap[cashString]!,
-                                      onTap: () {
-                                        choosePaymentMode(cashString);
-                                      },
+                                    SizedBox(
+                                      width: 26,
+                                      height: 26,
+                                      child: Checkbox(
+                                          activeColor: appThemeColor,
+                                          value: _doublePrintStatus,
+                                          onChanged: (s) {
+                                            setState(() => _doublePrintStatus =
+                                                s ?? false);
+                                          }),
                                     ),
-                                    PaymentModeWidget(
-                                      iconData: Icons.credit_card,
-                                      title: cardString,
-                                      selectedStatus: paymentModeMap[cardString]!,
-                                      onTap: () {
-                                        choosePaymentMode(cardString);
-                                      },
-                                    ),
-                                    PaymentModeWidget(
-                                      iconData: Icons.library_books_outlined,
-                                      title: creditString,
-                                      selectedStatus: paymentModeMap[creditString]!,
-                                      onTap: () {
-                                        choosePaymentMode(creditString);
-                                      },
-                                    ),
-                                    PaymentModeWidget(
-                                      iconData: Icons.qr_code,
-                                      title: upiString,
-                                      selectedStatus: paymentModeMap[upiString]!,
-                                      onTap: () {
-                                        choosePaymentMode(upiString);
-                                      },
-                                    ),
+                                    GestureDetector(
+                                        onTap: () => setState(() =>
+                                            _doublePrintStatus =
+                                                !_doublePrintStatus),
+                                        child: const Text('Double Print'))
                                   ],
-                                ),
+                                )
                               ],
                             ),
+                          )
+                        ],
+                      ),
+                    ),
+                  ),
+                  Visibility(
+                    visible: !_saveBtVisibility,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 5, vertical: 5),
+                      margin: const EdgeInsets.symmetric(vertical: 5),
+                      decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius:
+                              const BorderRadius.all(Radius.circular(5)),
+                          border: Border.all(color: appThemeColor)),
+                      child: Column(
+                        // crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Text('Payment Mode',
+                              style: TextStyle(
+                                  fontSize: 18,
+                                  color: appThemeColor,
+                                  fontWeight: FontWeight.w600)),
+                          Row(
+                            children: [
+                              PaymentModeWidget(
+                                iconData: Icons.currency_rupee,
+                                title: cashString,
+                                selectedStatus: paymentModeMap[cashString]!,
+                                onTap: () {
+                                  choosePaymentMode(
+                                      paymentMode: cashString,
+                                      context: context);
+                                },
+                              ),
+                              PaymentModeWidget(
+                                iconData: Icons.credit_card,
+                                title: gPayCardString,
+                                selectedStatus: paymentModeMap[gPayCardString]!,
+                                onTap: () {
+                                  choosePaymentMode(
+                                      paymentMode: gPayCardString,
+                                      context: context);
+                                },
+                              ),
+                              PaymentModeWidget(
+                                iconData: Icons.local_hospital_outlined,
+                                title: mgmPaymentModeString,
+                                selectedStatus:
+                                    paymentModeMap[mgmPaymentModeString]!,
+                                onTap: () {
+                                  choosePaymentMode(
+                                      paymentMode: mgmPaymentModeString,
+                                      context: context);
+                                },
+                              ),
+                              PaymentModeWidget(
+                                iconData: Icons.sick_outlined,
+                                title: inPatientString,
+                                selectedStatus:
+                                    paymentModeMap[inPatientString]!,
+                                onTap: () {
+                                  choosePaymentMode(
+                                      paymentMode: inPatientString,
+                                      context: context);
+                                },
+                              ),
+                            ],
                           ),
                         ],
                       ),
                     ),
                   ),
-                  Row(
-                    children: [
-                      SaveClearWidget(
-                          title: 'Save',
-                          onPressed: () async {
-                            print('entryModel = $entryModel');
-                            String s = paymentModeMap.entries.where((data) => data.value).map((data)=>data.key).first;
-                            // for (var v in s) {
-                              print('It string s = $s');
-                            // }
-                            if (entryModel != null) {
-                              setState(() => _isLoading = true);
-                              ExitResponseModel? e =
-                                  await _saveExitVehicleData();
-                              if (context.mounted) {
-                                if (e != null &&
-                                    e.message == 'Succesfully OutChecked!') {
-                                  autoDeleteAlertDialog(
-                                      context: context,
-                                      message: 'Saved Successfully!');
+                  Visibility(
+                    visible: _saveBtVisibility,
+                    child: Row(
+                      children: [
+                        SaveClearWidget(
+                            title: 'Save',
+                            onPressed: () async {
+                              checkLoginStatus().then((logStatus) async {
+                                if (logStatus != null) {
+                                  if (logStatus) {
+                                    print('entryModel = $entryModel');
+                                    // String s = paymentModeMap.entries.where((data) => data.value).map((data)=>data.key).first;
+                                    // for (var v in s) {
+                                    //   print('It string s = $s');
+                                    // }
+                                    if (entryModel != null) {
+                                      setState(() => _isLoading = true);
+                                      ExitResponseModel? e =
+                                      await _saveExitVehicleData();
+                                      if (context.mounted) {
+                                        if (e != null &&
+                                            e.message == 'Succesfully OutChecked!') {
+                                          autoDeleteAlertDialog(
+                                              context: context,
+                                              message: 'Saved Successfully!');
+                                        } else {
+                                          autoDeleteAlertDialog(
+                                              context: context,
+                                              message: 'Failed to Save Data');
+                                        }
+                                      }
+                                      _clearData();
+                                    } else {
+                                      showMessageAlertDialog(
+                                          context: context,
+                                          message: 'Failed. Invalid Vehicle Details');
+                                    }
+                                  } else {
+                                    Navigator.of(context).pushAndRemoveUntil(
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                const LoginScreen()),
+                                        (Route<dynamic> route) => false);
+                                  }
                                 } else {
-                                  autoDeleteAlertDialog(
+                                  showErrorAlertDialog(
                                       context: context,
-                                      message: 'Failed to Save Data');
+                                      message:
+                                          'Something went wrong try again later');
                                 }
-                              }
-                              _clearData();
-                            } else {
-                              showMessageAlertDialog(
-                                  context: context,
-                                  message: 'Failed. Invalid Vehicle Details');
-                            }
-                          }),
-                    ],
+                              });
+                            }),
+                      ],
+                    ),
                   ),
                   const SizedBox(
                     height: 10,
@@ -518,7 +722,43 @@ class _ExitScreenState extends State<ExitScreen> {
     remainingHours = 0;
     textFieldVisibility = true;
     _touchStatus = false;
+    _saveBtVisibility = false;
+    paymentModeMap.updateAll((key, value) => false);
     setState(() => _isLoading = false);
+  }
+}
+
+class DialysisNormalWidget extends StatelessWidget {
+  final String title;
+  final Function() onTap;
+
+  const DialysisNormalWidget({
+    super.key,
+    required this.title,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.all(6),
+          decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: const BorderRadius.all(Radius.circular(5)),
+              border: Border.all(color: appThemeColor),
+              boxShadow: const [BoxShadow(color: Colors.grey, blurRadius: 3)]),
+          child: Center(
+              child: Text(title,
+                  style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey.shade700,
+                      fontSize: 16))),
+        ),
+      ),
+    );
   }
 }
 
@@ -551,9 +791,11 @@ class PaymentModeWidget extends StatelessWidget {
             children: [
               Icon(iconData,
                   color: selectedStatus ? Colors.white : Colors.black),
-              Text(title,
-                  style: TextStyle(
-                      color: selectedStatus ? Colors.white : Colors.black))
+              FittedBox(
+                  fit: BoxFit.fitWidth,
+                  child: Text(title,
+                      style: TextStyle(
+                          color: selectedStatus ? Colors.white : Colors.black)))
             ],
           ),
         ),

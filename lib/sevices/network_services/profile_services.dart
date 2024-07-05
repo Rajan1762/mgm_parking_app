@@ -11,6 +11,53 @@ import 'package:http/http.dart' as http;
 // "User_Name":"some",
 // "Password":"123456"
 
+Future<bool?> checkLoginStatus() async {
+  print('loginStatusCheckURL = $loginStatusCheckURL$shiftIDValue');
+  http.Response response = await http.get(Uri.parse('$loginStatusCheckURL$shiftIDValue'));
+  print('checkLoginStatus response.body = ${response.body}, statusCode = ${response.statusCode}');
+  if ((response.statusCode >= 200 && response.statusCode < 300) &&
+      response.body.isNotEmpty) {
+    final List<dynamic> jsonData = jsonDecode(response.body);
+    List<Map<String, dynamic>>? val = jsonData.map((item) => Map<String, dynamic>.from(item)).toList();
+
+    if(val[0]['sstatus'] == 'OPEN')
+      {
+        return true;
+      }else{
+      return false;
+    }
+
+    // return ExitResponseModel.fromJson(json.decode(response.body));
+    // print('UserBaseModel.fromJson(json.decode(response.body)) = ${UserBaseModel.fromJson(json.decode(response.body))}');
+    // UserBaseModel userBaseModel = UserBaseModel.fromJson(json.decode(response.body));
+    // saveUserData(userBaseModel.data);
+    // return userBaseModel;
+  }
+  return null;
+}
+
+Future<bool?> shiftUser({required String openingAmount}) async {
+  print('loginUrl = $shiftOpenUrl$userIDValue\n');
+  print('json.encode({openingamount : openingAmount}) = ${json.encode({'openingamount' : openingAmount})}');
+  http.Response response = await http.post(Uri.parse('$shiftOpenUrl$userIDValue'),
+      body: json.encode({
+        'openingamount' : openingAmount
+      }),
+      headers: {'Content-Type': 'application/json'});
+  print(
+      'shiftUser response = ${response.body}, statusCode = ${response.statusCode}');
+  if (response.statusCode == 200 && response.body.isNotEmpty) {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    // Map<String, dynamic> json = jsonDecode(response.body);
+    prefs.setString(shiftIdString, '${jsonDecode(response.body)}');
+    shiftIDValue = '${jsonDecode(response.body)}';
+    prefs.setString(openingAmountString, openingAmount);
+    openingAmountValue = openingAmount;
+   return true;
+  }
+  return null;
+}
+
 Future<LoginResponseModel?> loginUser({required LoginModel loginModel}) async {
   print('loginUrl = $loginUrl\n json.encode(loginModel.toJson() = ${json.encode(loginModel.toJson())}');
   http.Response response = await http.post(Uri.parse(loginUrl),
@@ -20,7 +67,7 @@ Future<LoginResponseModel?> loginUser({required LoginModel loginModel}) async {
       'loginUser response = ${response.body}, statusCode = ${response.statusCode}');
   if (response.statusCode == 200 && response.body.isNotEmpty) {
     LoginResponseModel loginResponseModel = LoginResponseModel.fromJson(json.decode(response.body));
-    saveDate(loginResponseModel);
+        saveDate(loginResponseModel);
     return loginResponseModel;
   }
   return null;
@@ -30,8 +77,10 @@ saveDate(LoginResponseModel loginResponseModel) async
 {
   // Obtain shared preferences.
   final SharedPreferences prefs = await SharedPreferences.getInstance();
-  prefs.setString(shiftIdString, loginResponseModel.shiftid ?? '');
-  shiftIDValue = loginResponseModel.shiftid ?? '';
+  if(loginResponseModel.shiftOpen ?? false) {
+    prefs.setString(shiftIdString, loginResponseModel.shiftid ?? '');
+    shiftIDValue = loginResponseModel.shiftid ?? '';
+  }
   prefs.setString(userIdString, loginResponseModel.transid ?? '');
   userIDValue = loginResponseModel.transid ?? '';
 }
