@@ -124,6 +124,14 @@ class Sunmi {
         align: element.align,
       ));
     }
+    await SunmiPrinter.printText("Powered by Bro's One Tech\n\n\n",
+        style: SunmiStyle(
+          fontSize: SunmiFontSize.SM,
+          bold: true,
+          align: SunmiPrintAlign.CENTER,
+        ));
+    await SunmiPrinter.cut();
+    await closePrinter();
   }
 
   // print one structure
@@ -154,6 +162,12 @@ class Sunmi {
         align: element.align,
       ));
     }
+    await SunmiPrinter.printText("Powered by Bro's One Tech\n\n\n",
+        style: SunmiStyle(
+          fontSize: SunmiFontSize.SM,
+          bold: true,
+          align: SunmiPrintAlign.CENTER,
+        ));
     // await printRowAndColumns();
     // await printRowAndColumns(column1: "Column 1", column2: "Column 2", column3: "Column 3");
     // await printQRCode("Dart is powerful");

@@ -27,11 +27,11 @@ class SaveClearWidget extends StatelessWidget {
     return Expanded(
       child: ElevatedButton(
           style: ButtonStyle(
-            elevation: MaterialStateProperty.all<double?>(5),
-            padding: MaterialStateProperty.all(
-                const EdgeInsets.symmetric(vertical: 12)),
-            backgroundColor: MaterialStateProperty.all<Color>(appThemeColor),
-            shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+            elevation: WidgetStateProperty.all<double?>(5),
+            padding: WidgetStateProperty.all(
+                EdgeInsets.symmetric(vertical:  title == 'Add' ? 16 : 12)),
+            backgroundColor: WidgetStateProperty.all<Color>(appThemeColor),
+            shape: WidgetStateProperty.all<RoundedRectangleBorder>(
               RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8.0),
               ),
@@ -40,9 +40,10 @@ class SaveClearWidget extends StatelessWidget {
           onPressed: onPressed,
           child: Text(
             title,
-            style: const TextStyle(
-                color: Colors.white, fontSize: 16, fontWeight: FontWeight.w700),
+            style: TextStyle(
+                color: Colors.white, fontSize: title == 'Add' ? 20 : 16, fontWeight: FontWeight.w700),
           )),
     );
   }
 }
+

@@ -11,10 +11,10 @@ class FullScreenLoading extends StatefulWidget {
 class _FullScreenLoadingState extends State<FullScreenLoading> {
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
       height: MediaQuery.of(context).size.height,
       width: MediaQuery.of(context).size.width,
-      color: Colors.black12,
+      // color: Colors.black12,
       child: Center(
         child: CircularProgressIndicator(
           color: appThemeColor,

@@ -36,8 +36,8 @@ Future<bool?> checkLoginStatus() async {
   return null;
 }
 
-Future<bool?> shiftUser({required String openingAmount}) async {
-  print('loginUrl = $shiftOpenUrl$userIDValue\n');
+Future<bool> shiftUser({required String openingAmount}) async {
+  print('loginUrl = $shiftOpenUrl$userIDValue');
   print('json.encode({openingamount : openingAmount}) = ${json.encode({'openingamount' : openingAmount})}');
   http.Response response = await http.post(Uri.parse('$shiftOpenUrl$userIDValue'),
       body: json.encode({
@@ -55,7 +55,7 @@ Future<bool?> shiftUser({required String openingAmount}) async {
     openingAmountValue = openingAmount;
    return true;
   }
-  return null;
+  return false;
 }
 
 Future<LoginResponseModel?> loginUser({required LoginModel loginModel}) async {

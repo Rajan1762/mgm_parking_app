@@ -60,52 +60,60 @@ class _ExitScreenState extends State<ExitScreen> {
 
   choosePaymentMode(
       {required String paymentMode, required BuildContext context}) async {
-    checkLoginStatus().then((logStatus) async {
-      if (logStatus != null) {
-        if (logStatus) {
-          if (entryModel == null) {
-            showMessageAlertDialog(
-                context: context, message: 'Failed. Invalid Vehicle Details');
-            return;
-          }
-          paymentModeMap.forEach((key, value) {
-            if (key == paymentMode) {
-              paymentModeMap[key] = true;
-            } else {
-              paymentModeMap[key] = false;
+    try{
+      checkLoginStatus().then((logStatus) async {
+        if (logStatus != null) {
+          if (logStatus) {
+            if (entryModel == null) {
+              showMessageAlertDialog(
+                  context: context, message: 'Failed. Invalid Vehicle Details');
+              return;
             }
-          });
-          setState(() => _isLoading = true);
-          ExitResponseModel? e;
-          try {
-            e = await _saveExitVehicleData();
-          } catch (error) {
-            print('Error Occurred = $error');
+            paymentModeMap.forEach((key, value) {
+              if (key == paymentMode) {
+                paymentModeMap[key] = true;
+              } else {
+                paymentModeMap[key] = false;
+              }
+            });
+            setState(() => _isLoading = true);
+            ExitResponseModel? e;
+            try {
+              e = await _saveExitVehicleData();
+            } catch (error) {
+              print('Error Occurred = $error');
+              if (context.mounted) {
+                showErrorAlertDialog(context: context, message: error.toString());
+              }
+            }
+            print('e.message = ${e?.message}');
             if (context.mounted) {
-              showErrorAlertDialog(context: context, message: error.toString());
+              if (e != null && e.message == 'Succesfully OutChecked!') {
+                autoDeleteAlertDialog(
+                    context: context, message: 'Saved Successfully!');
+              } else {
+                autoDeleteAlertDialog(
+                    context: context, message: 'Failed to Save Data');
+              }
             }
+            _clearData();
+          } else {
+            Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (context) => const LoginScreen()),
+                    (Route<dynamic> route) => false);
           }
-          print('e.message = ${e?.message}');
-          if (context.mounted) {
-            if (e != null && e.message == 'Succesfully OutChecked!') {
-              autoDeleteAlertDialog(
-                  context: context, message: 'Saved Successfully!');
-            } else {
-              autoDeleteAlertDialog(
-                  context: context, message: 'Failed to Save Data');
-            }
-          }
-          _clearData();
         } else {
-          Navigator.of(context).pushAndRemoveUntil(
-              MaterialPageRoute(builder: (context) => const LoginScreen()),
-              (Route<dynamic> route) => false);
+          showErrorAlertDialog(
+              context: context, message: networkIssueMessage);
         }
-      } else {
-        showErrorAlertDialog(
-            context: context, message: 'Something went wrong try again later');
-      }
-    });
+      });
+    }catch(e)
+    {
+      print('Error Occurred = $e');
+      showErrorAlertDialog(
+          context: context,
+          message: e.toString());
+    }
   }
 
   printSunmiReceipt() {
@@ -127,7 +135,10 @@ class _ExitScreenState extends State<ExitScreen> {
     cList.add(alignColumn(
       text: '\n--------------------------------',
     ));
-    cList.add(alignColumn(text: 'Print Date : $exitDateTime\n\n\n'));
+    cList.add(alignColumn(text: 'Print Date : $exitDateTime'));
+    cList.add(alignColumn(
+      text: '\n--------------------------------',
+    ));
     Sunmi printer = Sunmi();
     printer.printReceipt(cl: cList, userName: userIDValue);
   }
@@ -351,53 +362,60 @@ class _ExitScreenState extends State<ExitScreen> {
                               SaveClearWidget(
                                   title: 'Check Details',
                                   onPressed: () async {
-                                    if (_idNumber.toString().isNotEmpty) {
-                                      setState(() => _isLoading = true);
-                                      checkLoginStatus()
-                                          .then((logStatus) async {
-                                        if (logStatus != null) {
-                                          if (logStatus) {
-                                            await _checkVehicleDetails();
-                                            _saveBtVisibility = amount == 0;
-                                            setState(() => _isLoading = false);
-                                            if (context.mounted) {
-                                              if (errorResponseModel != null) {
-                                                if (errorResponseModel
-                                                        ?.errorMessage !=
-                                                    null) {
-                                                  showErrorAlertDialog(
-                                                      context: context,
-                                                      message:
-                                                          errorResponseModel!
-                                                              .errorMessage!);
-                                                  // showToast(errorResponseModel!.errorMessage!);
-                                                  // ScaffoldMessenger.of(context)
-                                                  //     .showSnackBar(SnackBar(
-                                                  //   content: Text(errorResponseModel!.errorMessage!),
-                                                  // ));
+                                    try{
+                                      if (_idNumber.toString().isNotEmpty) {
+                                        setState(() => _isLoading = true);
+                                        checkLoginStatus()
+                                            .then((logStatus) async {
+                                          if (logStatus != null) {
+                                            if (logStatus) {
+                                              await _checkVehicleDetails();
+                                              _saveBtVisibility = amount == 0;
+                                              setState(() => _isLoading = false);
+                                              if (context.mounted) {
+                                                if (errorResponseModel != null) {
+                                                  if (errorResponseModel
+                                                      ?.errorMessage !=
+                                                      null) {
+                                                    showErrorAlertDialog(
+                                                        context: context,
+                                                        message:
+                                                        errorResponseModel!
+                                                            .errorMessage!);
+                                                    // showToast(errorResponseModel!.errorMessage!);
+                                                    // ScaffoldMessenger.of(context)
+                                                    //     .showSnackBar(SnackBar(
+                                                    //   content: Text(errorResponseModel!.errorMessage!),
+                                                    // ));
+                                                  }
                                                 }
                                               }
+                                            } else {
+                                              Navigator.of(context)
+                                                  .pushAndRemoveUntil(
+                                                  MaterialPageRoute(
+                                                      builder: (context) =>
+                                                      const LoginScreen()),
+                                                      (Route<dynamic> route) =>
+                                                  false);
                                             }
                                           } else {
-                                            Navigator.of(context)
-                                                .pushAndRemoveUntil(
-                                                    MaterialPageRoute(
-                                                        builder: (context) =>
-                                                            const LoginScreen()),
-                                                    (Route<dynamic> route) =>
-                                                        false);
+                                            showErrorAlertDialog(
+                                                context: context,
+                                                message: networkIssueMessage);
                                           }
-                                        } else {
-                                          showErrorAlertDialog(
-                                              context: context,
-                                              message:
-                                                  'Something went wrong try again later');
-                                        }
-                                      });
-                                    } else {
-                                      autoDeleteAlertDialog(
+                                        });
+                                      } else {
+                                        autoDeleteAlertDialog(
+                                            context: context,
+                                            message: 'Scan ID to Check');
+                                      }
+                                    }catch(e)
+                                    {
+                                      print('Error Occurred = $e');
+                                      showErrorAlertDialog(
                                           context: context,
-                                          message: 'Scan ID to Check');
+                                          message: e.toString());
                                     }
                                   }),
                               GestureDetector(
@@ -645,50 +663,56 @@ class _ExitScreenState extends State<ExitScreen> {
                         SaveClearWidget(
                             title: 'Save',
                             onPressed: () async {
-                              checkLoginStatus().then((logStatus) async {
-                                if (logStatus != null) {
-                                  if (logStatus) {
-                                    print('entryModel = $entryModel');
-                                    // String s = paymentModeMap.entries.where((data) => data.value).map((data)=>data.key).first;
-                                    // for (var v in s) {
-                                    //   print('It string s = $s');
-                                    // }
-                                    if (entryModel != null) {
-                                      setState(() => _isLoading = true);
-                                      ExitResponseModel? e =
-                                      await _saveExitVehicleData();
-                                      if (context.mounted) {
-                                        if (e != null &&
-                                            e.message == 'Succesfully OutChecked!') {
-                                          autoDeleteAlertDialog(
-                                              context: context,
-                                              message: 'Saved Successfully!');
-                                        } else {
-                                          autoDeleteAlertDialog(
-                                              context: context,
-                                              message: 'Failed to Save Data');
+                              try{
+                                checkLoginStatus().then((logStatus) async {
+                                  if (logStatus != null) {
+                                    if (logStatus) {
+                                      print('entryModel = $entryModel');
+                                      // String s = paymentModeMap.entries.where((data) => data.value).map((data)=>data.key).first;
+                                      // for (var v in s) {
+                                      //   print('It string s = $s');
+                                      // }
+                                      if (entryModel != null) {
+                                        setState(() => _isLoading = true);
+                                        ExitResponseModel? e =
+                                        await _saveExitVehicleData();
+                                        if (context.mounted) {
+                                          if (e != null &&
+                                              e.message == 'Succesfully OutChecked!') {
+                                            autoDeleteAlertDialog(
+                                                context: context,
+                                                message: 'Saved Successfully!');
+                                          } else {
+                                            autoDeleteAlertDialog(
+                                                context: context,
+                                                message: 'Failed to Save Data');
+                                          }
                                         }
+                                        _clearData();
+                                      } else {
+                                        showMessageAlertDialog(
+                                            context: context,
+                                            message: 'Failed. Invalid Vehicle Details');
                                       }
-                                      _clearData();
                                     } else {
-                                      showMessageAlertDialog(
-                                          context: context,
-                                          message: 'Failed. Invalid Vehicle Details');
+                                      Navigator.of(context).pushAndRemoveUntil(
+                                          MaterialPageRoute(
+                                              builder: (context) =>
+                                              const LoginScreen()),
+                                              (Route<dynamic> route) => false);
                                     }
                                   } else {
-                                    Navigator.of(context).pushAndRemoveUntil(
-                                        MaterialPageRoute(
-                                            builder: (context) =>
-                                                const LoginScreen()),
-                                        (Route<dynamic> route) => false);
+                                    showErrorAlertDialog(
+                                        context: context,
+                                        message: networkIssueMessage);
                                   }
-                                } else {
-                                  showErrorAlertDialog(
-                                      context: context,
-                                      message:
-                                          'Something went wrong try again later');
-                                }
-                              });
+                                });
+                              }catch(e){
+                                print('Error Occurred = $e');
+                                showErrorAlertDialog(
+                                    context: context,
+                                    message: e.toString());
+                              }
                             }),
                       ],
                     ),

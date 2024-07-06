@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mgm_parking_app/screens/profile_screens/login_screen.dart';
-import 'package:mgm_parking_app/screens/profile_screens/top_entries_page.dart';
+import 'package:mgm_parking_app/screens/home_screens/top_entries_page.dart';
 import 'package:mgm_parking_app/sevices/network_services/profile_services.dart';
 import 'package:mgm_parking_app/sevices/provider_services/date_time_provider.dart';
 import 'package:mgm_parking_app/utils/custom_widgets/loading_widgets.dart';
@@ -101,7 +101,7 @@ class _EntryScreenState extends State<EntryScreen> {
     //     .where((entry) => entry.value)
     //     .map((entry) => entry.key).first + 1}');
     try {
-      await checkLoginStatus().then((logStatus)async{
+      return await checkLoginStatus().then((logStatus)async{
         print('logStatus = $logStatus');
         if(logStatus!=null) {
           print('12345');
@@ -124,19 +124,25 @@ class _EntryScreenState extends State<EntryScreen> {
                 design: "",
                 userName: ""));
             _formKey.currentState?.reset();
-            return true;
+            print('00');
+            return Future.value(true);
           }else{
             Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) => const LoginScreen()), (Route<dynamic> route) => false);
           }
+          return Future.value(false);
         }else{
-          showErrorAlertDialog(context: context, message: 'Something went wrong try again later');
+          showErrorAlertDialog(context: context, message: networkIssueMessage);
+          return Future.value(false);
         }
       }
       );
+      return Future.value(false);
     } catch (e) {
-      print('_saveUserData Error Occurred = $e');
+      print('_saveUser1Data Error Occurred = $e');
+      showErrorAlertDialog(context: context, message: e.toString());
+      return Future.value(false);
     }
-    return false;
+    print('object22');
   }
   // openQRCodeScanner(BuildContext context) async {
   //   final additionalParameters = BarcodeAdditionalParameters(
@@ -279,29 +285,7 @@ class _EntryScreenState extends State<EntryScreen> {
                         ),
                       ),
                       // todo
-                      Padding(
-                        padding: const EdgeInsets.only(top: 10.0),
-                        child: Row(
-                          children: [
-                            // BikeCarSelectionWidget(
-                            //     title: 'Car',
-                            //     onTap: () {
-                            //       _vehicleType = vehicleTypeCar;
-                            //       setState(() {});
-                            //     },
-                            //     selectedStatus: _vehicleType == vehicleTypeCar, iconData: Icons.directions_car),
-                            //      selectedStatus: vehicleSelectedStatus[0], iconData: Icons.directions_car),
-                            // const SizedBox(width: 15),
-                            BikeCarSelectionWidget(
-                                title: 'Bike',
-                                onTap: () {
-                                  _vehicleType = vehicleTypeBike;
-                                  setState(() {});
-                                },
-                                selectedStatus: _vehicleType == vehicleTypeBike, iconData: Icons.directions_bike)
-                          ],
-                        ),
-                      ),
+
                       // Padding(
                       //   padding: const EdgeInsets.only(top: 10.0),
                       //   child: Row(
@@ -335,15 +319,16 @@ class _EntryScreenState extends State<EntryScreen> {
                       //     ],
                       //   ),
                       // ),
-                      const Spacer(),
+                      const SizedBox(height: 20),
                       Row(
                         children: [
                           SaveClearWidget(
                             title: 'Add',
-                            onPressed: () {
+                            onPressed: () async{
                               if (_formKey.currentState!.validate()) {
                                 setState(() => _isLoading = true);
-                                _addNewVehicle().then((value) {
+                                await _addNewVehicle().then((value) {
+                                  print('value = $value');
                                   if (value) {
                                     autoDeleteAlertDialog(
                                         context: context,
@@ -351,6 +336,7 @@ class _EntryScreenState extends State<EntryScreen> {
                                     _clearData();
                                   }
                                 });
+                                setState(() => _isLoading = false);
                               }
                             },
                           ),
@@ -360,7 +346,7 @@ class _EntryScreenState extends State<EntryScreen> {
                             },
                             child: Container(
                                 margin: const EdgeInsets.only(left: 15),
-                                padding: const EdgeInsets.all(10),
+                                padding: const EdgeInsets.symmetric(horizontal: 10,vertical: 16),
                                 decoration: BoxDecoration(
                                     color: appThemeColor,
                                     borderRadius: const BorderRadius.all(
@@ -370,9 +356,33 @@ class _EntryScreenState extends State<EntryScreen> {
                                           color: Colors.grey, blurRadius: 6)
                                     ]),
                                 child: const Icon(Icons.delete_outline,
-                                    color: Colors.white, size: 26)),
+                                    color: Colors.white, size: 30)),
                           )
                         ],
+                      ),
+                      const Spacer(),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 10.0),
+                        child: Row(
+                          children: [
+                            // BikeCarSelectionWidget(
+                            //     title: 'Car',
+                            //     onTap: () {
+                            //       _vehicleType = vehicleTypeCar;
+                            //       setState(() {});
+                            //     },
+                            //     selectedStatus: _vehicleType == vehicleTypeCar, iconData: Icons.directions_car),
+                            //      selectedStatus: vehicleSelectedStatus[0], iconData: Icons.directions_car),
+                            // const SizedBox(width: 15),
+                            BikeCarSelectionWidget(
+                                title: 'Bike',
+                                onTap: () {
+                                  _vehicleType = vehicleTypeBike;
+                                  setState(() {});
+                                },
+                                selectedStatus: _vehicleType == vehicleTypeBike, iconData: Icons.directions_bike)
+                          ],
+                        ),
                       )
                     ],
                   ),

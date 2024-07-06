@@ -3,8 +3,9 @@ import '../model/dummy_model.dart';
 // const String dealsUrl = "/api/GetProdcut?branch=B00001";
 // const String floorTableUrl = 'get_Tables?branch_code=';
 
+const String baseUrl = "https://mgmtestapi.brositecom.com";
 // const String baseUrl = "https://demomgmapi.brositecom.com";
-const String baseUrl = "https://mgmapi.brosonetech.com";
+// const String baseUrl = "https://mgmapi.brosonetech.com";
 // const String baseUrl = "https://mgm.brosonetech.com";
 const String loginUserListURL = '$baseUrl/api/Login/list';
 const String exitVehicleDetailsURL = '$baseUrl/api/Entries/getDatabyID?id=';
@@ -59,6 +60,7 @@ String logInTimeVal = '';
 const String vehicleTypeCar = 'CAR';
 const String vehicleTypeBike = 'BIKE';
 const String vehicleTypeDialysis = 'DIALYSIS';
+const String networkIssueMessage = 'Network connectivity is currently weak. Please try again later.';
 
 // List<String> vehicleTypeList = ['Car','Bike','Staff Vehicle','Dialysis','IN Patient'];
 

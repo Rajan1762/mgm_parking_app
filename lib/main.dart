@@ -64,7 +64,7 @@ Future<void> _getSharedPrefValue() async {
   userIDValue = prefs.getString(userIdString) ?? '';
   logInTimeVal = prefs.getString(logInTimeString) ?? '';
   openingAmountValue = prefs.getString(openingAmountString) ?? '';
-  print('shiftIDValue = $shiftIDValue, userIDValue = $userIDValue, logInTimeVal = $logInTimeVal');
+  print('shiftIDValue = $shiftIDValue, userIDValue = $userIDValue,\n logInTimeVal = $logInTimeVal, openingAmountValue = $openingAmountValue');
 }
 
 class MyApp extends StatelessWidget {
@@ -93,7 +93,7 @@ class MyApp extends StatelessWidget {
           useMaterial3: true,
         ),
         // home: const ShiftOpenScreen()
-        home: shiftIDValue == '' ? const LoginScreen() : const HomeMainScreen()
+        home: shiftIDValue == '' ? const LoginScreen() : openingAmountValue == '' ? const ShiftOpenScreen() : const HomeMainScreen()
       ),
     );
   }

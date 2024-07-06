@@ -3,6 +3,7 @@ import 'package:mgm_parking_app/screens/home_screens/home_main_screen.dart';
 import 'package:mgm_parking_app/utils/colors.dart';
 import '../../model/errorResponseModel.dart';
 import '../../sevices/network_services/profile_services.dart';
+import '../../utils/constants.dart';
 import '../../utils/custom_widgets/notification_widgets.dart';
 
 class ShiftOpenScreen extends StatefulWidget {
@@ -17,7 +18,7 @@ class _ShiftOpenScreenState extends State<ShiftOpenScreen> {
 
   _openShift() async
   {
-    bool? shiftOpenStatus;
+    bool shiftOpenStatus = false;
     String? message;
     try {
       shiftOpenStatus = await shiftUser(openingAmount: openingAmountController.value.text);
@@ -32,19 +33,25 @@ class _ShiftOpenScreenState extends State<ShiftOpenScreen> {
   }
 
   @override
+  void dispose() {
+    openingAmountController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return SafeArea(child: Scaffold(
       body: Center(
         child: Container(
-          margin: EdgeInsets.all(10),
-          padding: EdgeInsets.all(40),
+          margin: const EdgeInsets.all(10),
+          padding: const EdgeInsets.all(40),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.all(Radius.circular(10)),
+            borderRadius: const BorderRadius.all(Radius.circular(10)),
             border: Border.all(
               color: appThemeColor
             ),
-            boxShadow: [
+            boxShadow: const [
               BoxShadow(
                 color: Colors.grey,
                 blurRadius: 6
@@ -81,15 +88,17 @@ class _ShiftOpenScreenState extends State<ShiftOpenScreen> {
                   shape: WidgetStateProperty.all<OutlinedBorder?>(const RoundedRectangleBorder(
                     borderRadius: BorderRadius.all(Radius.circular(5))
                   ))
-                )
-                  ,onPressed: ()async{
+                ),onPressed: ()async{
                 ErrorResponseModel e = await _openShift();
-                if(e.obj!=null)
+                if(context.mounted)
                   {
-                    Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context)=>const HomeMainScreen()));
-                  }else{
-                  showErrorAlertDialog(context: context, message: e.errorMessage ?? 'Something went wrong. Please try again Later.');
-                }
+                    if(e.obj)
+                    {
+                      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context)=>const HomeMainScreen()));
+                    }else{
+                      showErrorAlertDialog(context: context, message: e.errorMessage ?? networkIssueMessage);
+                    }
+                  }
               }, child: const Text('Shift Open',style: TextStyle(fontSize: 24,fontWeight: FontWeight.w600),))
             ],
           ),

@@ -18,7 +18,7 @@ import '../../sevices/print_services/sunmi.dart';
 import '../../utils/colors.dart';
 import '../../utils/common_values.dart';
 import '../offline_screen.dart';
-import '../profile_screens/top_entries_page.dart';
+import 'top_entries_page.dart';
 import 'full_screen_loading.dart';
 
 class HomeMainScreen extends StatefulWidget {
@@ -30,7 +30,6 @@ class HomeMainScreen extends StatefulWidget {
 
 class _HomeMainScreenState extends State<HomeMainScreen> {
   int bottomBarIndex = 0;
-  bool _isLoading = false;
 
   _printReceipt(LogOutResponseModel e) {
     List<ColumnMaker> cList = [];
@@ -68,7 +67,7 @@ class _HomeMainScreenState extends State<HomeMainScreen> {
         text:
             'LogOutTime : ${DateFormat("dd-MM-yyyy HH:mm:ss").format(DateTime.now())}'));
     cList.add(alignColumn(
-      text: '--------------------------------\n\n\n',
+      text: '--------------------------------',
     ));
     Sunmi printer = Sunmi();
     printer.printExitReceipt(cl: cList, userName: userIDValue);
@@ -87,7 +86,7 @@ class _HomeMainScreenState extends State<HomeMainScreen> {
       LogOutResponseModel? logOutResponseModel = await logOutUser(
           logoutModel: LogOutModel(shiftname: shiftIDValue, username: userIDValue));
       if (logOutResponseModel == null && context.mounted) {
-        showErrorAlertDialog(context: context, message: 'Something Went Wrong');
+        showErrorAlertDialog(context: context, message: networkIssueMessage);
         return false;
       }
       _printReceipt(logOutResponseModel!);
@@ -103,6 +102,10 @@ class _HomeMainScreenState extends State<HomeMainScreen> {
     shiftIDValue = '';
     prefs.setString(userIdString, '');
     userIDValue = '';
+    prefs.setString(logInTimeString, '');
+    logInTimeVal = '';
+    prefs.setString(openingAmountString, '');
+    openingAmountValue = '';
     return true;
   }
 
@@ -138,21 +141,29 @@ class _HomeMainScreenState extends State<HomeMainScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Expanded(
-              child: Text('BOT PARKING - ($userIDValue)',
-                  style: GoogleFonts.oswald(
-                    textStyle: TextStyle(color: appThemeColor),
-                  )),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(userIDValue,
+                        style: GoogleFonts.oswald(
+                          textStyle: TextStyle(color: appThemeColor),
+                        )),
+                  ),
+                  SizedBox(
+                    width: 150,
+                    child: FittedBox(
+                      fit: BoxFit.fitWidth,
+                      child: Text(' $logInTimeVal',
+                          style: GoogleFonts.oswald(
+                            textStyle: TextStyle(color: appThemeColor),
+                          )),
+                    ),
+                  ),
+                ],
+              ),
             ),
             GestureDetector(
-                onTap: ()async{
-                  setState(() =>_isLoading=true);
-                  if(entryExitStatus)
-                    {
-                      topEntryValue = await fetchTop10EntriesData();
-                    }else{
-                    topExitValue = await fetchTop10ExitData();
-                  }
-                  setState(() =>_isLoading=false);
+                onTap: (){
                   Navigator.of(context).push(MaterialPageRoute(builder: (context){
                     return TopEntriesPage(entryStatus: entryExitStatus);
                   }));
@@ -188,7 +199,7 @@ class _HomeMainScreenState extends State<HomeMainScreen> {
           ],
         ),
       ),
-      body: _isLoading ? FullScreenLoading() : bottomBarIndex == 0 ? const EntryScreen() : const ExitScreen() ,
+      body: bottomBarIndex == 0 ? const EntryScreen() : const ExitScreen() ,
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
