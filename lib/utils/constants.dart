@@ -3,9 +3,9 @@ import '../model/dummy_model.dart';
 // const String dealsUrl = "/api/GetProdcut?branch=B00001";
 // const String floorTableUrl = 'get_Tables?branch_code=';
 
-const String baseUrl = "https://mgmtestapi.brositecom.com";
+// const String baseUrl = "https://mgmtestapi.brositecom.com";
 // const String baseUrl = "https://demomgmapi.brositecom.com";
-// const String baseUrl = "https://mgmapi.brosonetech.com";
+const String baseUrl = "https://mgmapi.brosonetech.com";
 // const String baseUrl = "https://mgm.brosonetech.com";
 const String loginUserListURL = '$baseUrl/api/Login/list';
 const String exitVehicleDetailsURL = '$baseUrl/api/Entries/getDatabyID?id=';

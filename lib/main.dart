@@ -4,6 +4,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:mgm_parking_app/dummy_screen.dart';
 import 'package:mgm_parking_app/screens/enrty_screens/entry_screen.dart';
 import 'package:mgm_parking_app/screens/home_screens/home_main_screen.dart';
 import 'package:mgm_parking_app/screens/offline_screen.dart';
@@ -93,6 +94,7 @@ class MyApp extends StatelessWidget {
           useMaterial3: true,
         ),
         // home: const ShiftOpenScreen()
+        // home: const DummyScreen()
         home: shiftIDValue == '' ? const LoginScreen() : openingAmountValue == '' ? const ShiftOpenScreen() : const HomeMainScreen()
       ),
     );

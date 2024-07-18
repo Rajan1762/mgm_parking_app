@@ -3,34 +3,31 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:mgm_parking_app/utils/colors.dart';
 import '../common_values.dart';
 
-void autoDeleteAlertDialog({required BuildContext context,required String message})
+void autoDeleteAlertDialog({required BuildContext context,required String message,required Function() futureFunction})
 {
   alertOkStatus = false;
   showDialog(
+      barrierDismissible : false,
       context: context,
       builder: (context) {
-        Future.delayed(const Duration(seconds: 1), () {
-          if(!alertOkStatus)
-            {
-              Navigator.of(context).pop(true);
-            }
-        });
+        Future.delayed(const Duration(seconds: 1), futureFunction
+        );
         return AlertDialog(
           title: Text(message),
-          actions: <Widget>[
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                TextButton(
-                  onPressed:(){
-                    alertOkStatus = true;
-                    Navigator.of(context).pop();
-                    },
-                  child: Text('OK',style: TextStyle(color: appThemeColor,fontWeight: FontWeight.bold,fontSize: 18)),
-                ),
-              ],
-            ),
-          ],
+          // actions: <Widget>[
+          //   Row(
+          //     mainAxisAlignment: MainAxisAlignment.center,
+          //     children: [
+          //       TextButton(
+          //         onPressed:(){
+          //           alertOkStatus = true;
+          //           Navigator.of(context).pop();
+          //           },
+          //         child: Text('OK',style: TextStyle(color: appThemeColor,fontWeight: FontWeight.bold,fontSize: 18)),
+          //       ),
+          //     ],
+          //   ),
+          // ],
         );
       });
 }

@@ -47,6 +47,7 @@ dependencies:
   sunmi_printer_plus: ^2.1.3
   font_awesome_flutter: ^10.7.0
   qr_bar_code_scanner_dialog: ^0.0.5
+  image: ^4.2.0
 
 dev_dependencies:
   flutter_test:

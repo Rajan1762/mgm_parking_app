@@ -90,10 +90,16 @@ class _ExitScreenState extends State<ExitScreen> {
             if (context.mounted) {
               if (e != null && e.message == 'Succesfully OutChecked!') {
                 autoDeleteAlertDialog(
-                    context: context, message: 'Saved Successfully!');
+                    context: context, message: 'Saved Successfully!', futureFunction: () {
+                  Navigator.of(context).pop(true);
+                  // _clearData();
+                });
               } else {
                 autoDeleteAlertDialog(
-                    context: context, message: 'Failed to Save Data');
+                    context: context, message: 'Failed to Save Data', futureFunction: () {
+                  Navigator.of(context).pop(true);
+                  // _clearData();
+                });
               }
             }
             _clearData();
@@ -250,6 +256,7 @@ class _ExitScreenState extends State<ExitScreen> {
         amount = 0;
         return;
       }
+
       amount = remainingHours < 2 || (remainingHours == 2 && seconds == 0)
           ? vm.baseAmount
           : vm.baseAmount +
@@ -289,8 +296,7 @@ class _ExitScreenState extends State<ExitScreen> {
         child: Stack(
           children: [
             Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 10.0, vertical: 5),
+              padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 5),
               child: Column(
                 children: [
                   Expanded(
@@ -408,7 +414,9 @@ class _ExitScreenState extends State<ExitScreen> {
                                       } else {
                                         autoDeleteAlertDialog(
                                             context: context,
-                                            message: 'Scan ID to Check');
+                                            message: 'Scan ID to Check', futureFunction: () {
+                                          Navigator.of(context).pop(true);
+                                        });
                                       }
                                     }catch(e)
                                     {
@@ -674,18 +682,23 @@ class _ExitScreenState extends State<ExitScreen> {
                                       // }
                                       if (entryModel != null) {
                                         setState(() => _isLoading = true);
-                                        ExitResponseModel? e =
-                                        await _saveExitVehicleData();
+                                        ExitResponseModel? e = await _saveExitVehicleData();
                                         if (context.mounted) {
                                           if (e != null &&
                                               e.message == 'Succesfully OutChecked!') {
                                             autoDeleteAlertDialog(
                                                 context: context,
-                                                message: 'Saved Successfully!');
+                                                message: 'Saved Successfully!', futureFunction: () {
+                                              Navigator.of(context).pop(true);
+                                              // _clearData();
+                                            });
                                           } else {
                                             autoDeleteAlertDialog(
                                                 context: context,
-                                                message: 'Failed to Save Data');
+                                                message: 'Failed to Save Data', futureFunction: () {
+                                              Navigator.of(context).pop(true);
+                                              // _clearData();
+                                            });
                                           }
                                         }
                                         _clearData();

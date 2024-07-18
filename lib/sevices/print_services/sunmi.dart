@@ -94,7 +94,8 @@ class Sunmi {
     await initialize();
     // await printLogoImage();
     // await printText(text);
-    await SunmiPrinter.lineWrap(1); // creates one line space
+    //TODO
+    // await SunmiPrinter.lineWrap(1); // creates one line space
     await SunmiPrinter.printText('MGM HOSPITAL\n',
         style: SunmiStyle(
           fontSize: SunmiFontSize.LG,
@@ -162,6 +163,7 @@ class Sunmi {
         align: element.align,
       ));
     }
+
     await SunmiPrinter.printText("Powered by Bro's One Tech\n\n\n",
         style: SunmiStyle(
           fontSize: SunmiFontSize.SM,
@@ -171,6 +173,17 @@ class Sunmi {
     // await printRowAndColumns();
     // await printRowAndColumns(column1: "Column 1", column2: "Column 2", column3: "Column 3");
     // await printQRCode("Dart is powerful");
+    await SunmiPrinter.cut();
+    await closePrinter();
+  }
+
+  Future<void> dummyPrint({required Uint8List img}) async {
+    print('img = $img');
+    await initialize();
+    await SunmiPrinter.lineWrap(1);
+    await SunmiPrinter.printImage(img);
+    await SunmiPrinter.lineWrap(1);
+    await SunmiPrinter.lineWrap(1);
     await SunmiPrinter.cut();
     await closePrinter();
   }

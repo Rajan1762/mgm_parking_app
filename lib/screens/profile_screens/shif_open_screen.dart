@@ -89,15 +89,21 @@ class _ShiftOpenScreenState extends State<ShiftOpenScreen> {
                     borderRadius: BorderRadius.all(Radius.circular(5))
                   ))
                 ),onPressed: ()async{
-                ErrorResponseModel e = await _openShift();
-                if(context.mounted)
-                  {
-                    if(e.obj)
+                  if(openingAmountController.value.text.isNotEmpty)
                     {
-                      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context)=>const HomeMainScreen()));
+                      ErrorResponseModel e = await _openShift();
+                      if(context.mounted)
+                      {
+                        print('e.obj = ${e.obj}');
+                        if(e.obj)
+                        {
+                          Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context)=>const HomeMainScreen()));
+                        }else{
+                          showErrorAlertDialog(context: context, message: e.errorMessage ?? networkIssueMessage);
+                        }
+                      }
                     }else{
-                      showErrorAlertDialog(context: context, message: e.errorMessage ?? networkIssueMessage);
-                    }
+                    showCommonAlertDialog(context: context, message: 'Enter Amount to Continue', onTap: (){Navigator.pop(context);});
                   }
               }, child: const Text('Shift Open',style: TextStyle(fontSize: 24,fontWeight: FontWeight.w600),))
             ],

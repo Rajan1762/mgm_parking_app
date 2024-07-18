@@ -332,8 +332,10 @@ class _EntryScreenState extends State<EntryScreen> {
                                   if (value) {
                                     autoDeleteAlertDialog(
                                         context: context,
-                                        message: 'Added Successfully!');
-                                    _clearData();
+                                        message: 'Added Successfully!', futureFunction: () {
+                                        Navigator.of(context).pop(true);
+                                        _clearData();
+                                    });
                                   }
                                 });
                                 setState(() => _isLoading = false);
