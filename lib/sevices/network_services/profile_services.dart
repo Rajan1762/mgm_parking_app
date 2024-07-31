@@ -88,8 +88,7 @@ saveDate(LoginResponseModel loginResponseModel) async
 Future<List<LoginListModel>?> loginUserList() async {
   print('loginUserListURL = $loginUserListURL');
   http.Response response = await http.get(Uri.parse(loginUserListURL));
-  print(
-      'loginUserList response = ${response.body}, statusCode = ${response.statusCode}');
+  print('loginUserList response = ${response.body}, statusCode = ${response.statusCode}');
   if (response.statusCode == 200 && response.body.isNotEmpty) {
     List body = json.decode(response.body);
     List<LoginListModel> loginUserList = [];

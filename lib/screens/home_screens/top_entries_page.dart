@@ -56,13 +56,13 @@ class _TopEntriesPageState extends State<TopEntriesPage> {
                   ? topEntryValue?.length
                   : topExitValue?.length,
               itemBuilder: (BuildContext context, int index) {
-                String? dateTimeString = widget.entryStatus ? topEntryValue![index]['date'] : topExitValue?[index]['date'];
-                // String dateTimeString = '2024-07-06T12:26:17.58';
-                DateTime dateTime = DateTime.parse(dateTimeString!);
-
-                // Format the date and time
-                String formattedDate = DateFormat('dd-MM-yyyy').format(dateTime);
-                String formattedTime = DateFormat('HH:mm:ss').format(dateTime);
+                // String? dateTimeString = widget.entryStatus ? topEntryValue![index]['date'] : topExitValue?[index]['date'];
+                // // String dateTimeString = '2024-07-06T12:26:17.58';
+                // DateTime dateTime = DateTime.parse(dateTimeString!);
+                //
+                // // Format the date and time
+                // String formattedDate = DateFormat('dd-MM-yyyy').format(dateTime);
+                // String formattedTime = DateFormat('HH:mm:ss').format(dateTime);
                 return Card(
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(15.0),
@@ -89,15 +89,15 @@ class _TopEntriesPageState extends State<TopEntriesPage> {
                             ),
                           ),
                         ),
-                        Expanded(
-                          child: Text(
-                            'Date : $formattedDate',
-                            style: const TextStyle(
-                              // fontSize: 18,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
+                        // Expanded(
+                        //   child: Text(
+                        //     'Date : $formattedDate',
+                        //     style: const TextStyle(
+                        //       // fontSize: 18,
+                        //       fontWeight: FontWeight.w600,
+                        //     ),
+                        //   ),
+                        // ),
                       ],
                     ),
                     subtitle: Row(
@@ -113,15 +113,15 @@ class _TopEntriesPageState extends State<TopEntriesPage> {
                             ),
                           ),
                         ),
-                        Expanded(
-                          child: Text(
-                            'Time : $formattedTime',
-                            style: const TextStyle(
-                              // fontSize: 18,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
+                        // Expanded(
+                        //   child: Text(
+                        //     'Time : $formattedTime',
+                        //     style: const TextStyle(
+                        //       // fontSize: 18,
+                        //       fontWeight: FontWeight.w600,
+                        //     ),
+                        //   ),
+                        // ),
                       ],
                     ),
                     // trailing: const Icon(Icons.arrow_forward_ios, color: Colors.blueAccent),

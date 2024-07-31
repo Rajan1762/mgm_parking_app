@@ -6,6 +6,7 @@ import 'package:mgm_parking_app/model/profile_models/logout_model.dart';
 import 'package:mgm_parking_app/model/profile_models/logout_response_model.dart';
 import 'package:mgm_parking_app/screens/enrty_screens/entry_screen.dart';
 import 'package:mgm_parking_app/screens/exit_screens/exit_screen.dart';
+import 'package:mgm_parking_app/screens/in-parking_screens/in-parking_screen.dart';
 import 'package:mgm_parking_app/screens/profile_screens/login_screen.dart';
 import 'package:mgm_parking_app/sevices/network_services/home_screen_services.dart';
 import 'package:mgm_parking_app/utils/constants.dart';
@@ -137,7 +138,8 @@ class _HomeMainScreenState extends State<HomeMainScreen> {
         child: Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: Row(
+        title: bottomBarIndex ==2 ? Text("In-Parking Vehicle's",style: GoogleFonts.oswald(
+            textStyle: TextStyle(color: appThemeColor))) : Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Expanded(
@@ -146,7 +148,7 @@ class _HomeMainScreenState extends State<HomeMainScreen> {
                   Expanded(
                     child: Text(userIDValue,
                         style: GoogleFonts.oswald(
-                          textStyle: TextStyle(color: appThemeColor),
+                          textStyle: TextStyle(color: appThemeColor)
                         )),
                   ),
                   SizedBox(
@@ -155,7 +157,7 @@ class _HomeMainScreenState extends State<HomeMainScreen> {
                       fit: BoxFit.fitWidth,
                       child: Text(' $logInTimeVal',
                           style: GoogleFonts.oswald(
-                            textStyle: TextStyle(color: appThemeColor),
+                            textStyle: TextStyle(color: appThemeColor)
                           )),
                     ),
                   ),
@@ -199,7 +201,7 @@ class _HomeMainScreenState extends State<HomeMainScreen> {
           ],
         ),
       ),
-      body: bottomBarIndex == 0 ? const EntryScreen() : const ExitScreen() ,
+      body: bottomBarIndex == 0 ? const EntryScreen() : bottomBarIndex == 1 ? const ExitScreen() : const InParkingScreen(),
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
@@ -210,6 +212,10 @@ class _HomeMainScreenState extends State<HomeMainScreen> {
             icon: Icon(Icons.receipt_long_outlined, size: 20),
             label: 'Exit',
           ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.directions_bike_outlined, size: 20),
+            label: 'InParking',
+          )
         ],
         currentIndex: bottomBarIndex,
         selectedItemColor: appThemeColor,

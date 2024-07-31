@@ -23,6 +23,7 @@ const String loginStatusCheckURL = '$baseUrl/api/Login/CheckLogin/';
 
 const String top10EntryScreenEntriesURL = '$baseUrl/api/Entries/gettop10Entry';
 const String top10ExitScreenEntriesURL = '$baseUrl/api/OutCheck/gettop10Exit';
+const String inParkingVehicleURL = '$baseUrl/api/reports/bikeparking/';
 
 const String kOfflineImage = "assets/images/offline_image.jpg";
 const String kOrganizationCode = 'Organization_Code';
